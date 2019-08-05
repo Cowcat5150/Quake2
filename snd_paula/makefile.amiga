@@ -1,0 +1,19 @@
+CC=vc +aos68k_warpos 
+CFLAGS=-c99 -cpu=68040 -fpu=68040
+AR= join as
+LIBS=-lamiga -lm040 -ldll
+
+PRODUCT = snd_paula.dll
+INSTLOCATION =
+SRC = snd_amiga.c
+OBJ = snd_amiga.o
+
+#include /amiga/config.mk
+
+snd_amiga.o: snd_amiga.c snd_interrupt.h
+
+snd_interrupt.h: snd_interrupt.s
+	#asm snd_interrupt.s
+	#objcopy -I amiga -O binary snd_interrupt.o
+	#/genheader snd_interrupt.o snd_interrupt.h intcode
+

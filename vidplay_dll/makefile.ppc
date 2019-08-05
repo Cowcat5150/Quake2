@@ -1,0 +1,22 @@
+CC = ppc-amigaos-gcc
+
+SRC = main.c cinematics.c sound.c
+OBJ = $(SRC:.c=.o)
+
+BASEPATH = stuff:Q2amiga/quake2
+
+BASECFLAGS = -I$(BASEPATH) -I$(BASEPATH)/game -I$(BASEPATH)/amiga -I$(BASEPATH)/client \
+	     -I$(BASEPATH)/ctf -I$(BASEPATH)/qcommon -I$(BASEPATH)/server \
+	     -DAMIGA -D_inline="static __inline" -D__int64="long long" \
+	     -D__stdcall= -DENDIAN_INLINE\
+	     -D_DEVEL
+
+CFLAGS = -O -g -I../client $(BASECFLAGS) -warpup -V 2.95.3b
+
+bin: vidplay
+
+vidplay: $(OBJ)
+	$(CC) $(CFLAGS) -o vidplay $(OBJ) -ldllppc
+
+%.o : %.c
+	$(CC) $(CFLAGS) -c $< -o $*.o

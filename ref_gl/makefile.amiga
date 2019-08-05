@@ -1,0 +1,12 @@
+PRODUCT = ref_gl.dll
+LOCAL_CFLAGS = -DAMIGA_ARGB_4444
+INSTLOCATION =
+
+SRC = $(BASEPATH)amiga/renderercache.c gl_draw.c gl_light.c gl_mesh.c gl_model.c gl_rmain.c gl_rmisc.c gl_rsurf.c \
+gl_image.c gl_warp.c $(BASEPATH)game/q_shared.c $(BASEPATH)amiga/q_shamiga.c $(BASEPATH)amiga/gla_imp.c $(BASEPATH)amiga/qgl_amiga.c
+
+OBJ = $(SRC:.c=.o)
+EXTRA_LIBS = -lmgl
+
+include /amiga/config.mk
+

@@ -1,0 +1,14 @@
+PRODUCT = snd_ahi.dll
+INSTLOCATION =
+
+SRC = snd_ahi.c
+OBJ = snd_ahi.o
+
+include /amiga/config.mk
+
+snd_ahi.o: snd_ahi.c snd_68k.h
+
+snd_68k.h: snd_ahi68k.c
+	gcc -o snd_ahi68k.o -c snd_ahi68k.c -m68040 -DASM=
+	objcopy -I amiga -O binary snd_ahi68k.o
+	/genheader snd_ahi68k.o snd_68k.h callback

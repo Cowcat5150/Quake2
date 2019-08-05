@@ -1,0 +1,33 @@
+OBJS =  dllstartup.o dll.o dllimport.o
+
+ARCHIVE = libdllQ2.a
+
+OTHER = 
+
+CC = gcc --specs=warpup
+
+AR = ar
+RANLIB = ranlib
+
+CODEGEN = -Wall -noixemul -fomit-frame-pointer -ffast-math -fno-strict-aliasing
+OPTIMIZE = -O2 -mcpu=603e
+
+CFLAGS=  $(OPTIMIZE) $(CODEGEN)
+
+OBJS = dllstartup.o dll.o dllimport.o 
+
+%.o : %.c 
+	$(CC) $(CFLAGS)  -c -o $@ $<
+
+$(ARCHIVE): $(OBJS)
+	$(AR) r $(ARCHIVE) $(OBJS)
+	$(RANLIB) $@
+
+#DEPENDENCIES
+
+dllstartup.o: dllstartup.c dll.h
+
+dll.o: dll.c dll.h
+
+dllimport.o: dllimport.c dll.h
+

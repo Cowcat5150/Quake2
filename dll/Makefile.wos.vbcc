@@ -1,0 +1,37 @@
+OBJS =  dllstartup.o dll.o dllimport.o
+
+ARCHIVE = dll.lib
+
+OTHER = 
+
+CC = vc +warpos -c99
+
+AR = join as
+
+OPTIMIZE = -O2 -speed -merge-constants -maxoptpasses=20 -cpu=603
+
+CFLAGS= $(CODEGEN) $(OPTIMIZE)
+
+#INC= -Idevel:PosixLib/include
+
+#%.o : %.c
+#	$(CC) $(CFLAGS) $(INC) -S $< -o $*.s
+#	$(CC) $(CFLAGS) $(INC) -c $*.s -o $*.o
+
+LIBOBJS = dllstartup.o dll.o dllimport.o 
+
+%.o : %.c 
+	$(CC) $(CFLAGS)  -c -o $@ $<
+
+$(ARCHIVE): $(LIBOBJS)
+	$(AR) $(ARCHIVE) $(LIBOBJS)
+
+
+#DEPENDENCIES
+
+dllstartup.o: dllstartup.c dll.h
+
+dll.o: dll.c dll.h
+
+dllimport.o: dllimport.c dll.h
+

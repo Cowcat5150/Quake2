@@ -1,0 +1,1356 @@
+#
+ARCH = 68k
+QUAKE2_BUILD	= $(ARCH)/obj_quake2
+GAME_BUILD	= $(ARCH)/obj_game
+SOFT_BUILD	= $(ARCH)/obj_soft
+GL_BUILD	= $(ARCH)/obj_gl
+GLNOLRU_BUILD	= $(ARCH)/obj_glnolru
+SND_PAULA_BUILD = $(ARCH)/obj_paula
+SND_AHI_BUILD   = $(ARCH)/obj_ahi
+VIDPLAY_BUILD   = $(ARCH)/obj_vidplay
+CTF_BUILD	= $(ARCH)/obj_ctf
+ROGUE_BUILD	= $(ARCH)/obj_rogue
+XATRIX_BUILD	= $(ARCH)/obj_xatrix
+
+CC =vc +aos68k_q2
+CFLAGS      =-c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 -DAMIGAOS -DENDIAN_INLINE -DAMIGA_ARGB_4444 -Isystem:posixlib/include
+#CFLAGS_OPT  =-c99 -O3 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 -DAMIGAOS -DENDIAN_INLINE -DAMIGA_ARGB_4444 -Isystem:posixlib/include
+CFLAGS_ATCP =-c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 -DAMIGAOS -DENDIAN_INLINE -DAMIGA_ARGB_4444 -Isystem:amitcp/netinclude
+CFLAGS_VIDP =-c99 -O2 -speed -cpu=68060 -fpu=68060 -maxoptpasses=20 -DAMIGAOS -DENDIAN_INLINE
+
+AS68 =vasmm68k_mot
+AS68FLAGS =-Fhunk -m68060 -phxass -opt-fconst -showopt -x -nosym -Isystem:ndk_3.9/INCLUDE/include_i
+
+DO_CC       = $(CC) $(CFLAGS) -o $@ -c $<
+DO_CC_OPT   = $(CC) $(CFLAGS_OPT) -o $@ -c $<
+DO_CC_ATCP  = $(CC) $(CFLAGS_ATCP) -o $@ -c $<
+DO_CC_VIDP  = $(CC) $(CFLAGS_VIDP) -o $@ -c $<
+DO_AS68K    = $(AS68) $(AS68FLAGS) -o $@ $<
+
+LIBS  = -lm060 -lposix -ldll -lamiga
+LIBS2 = -lm060 -lposix -ldll -lamiga -lmglQ2
+
+##### OBJS
+
+QUAKE2_OBJS=\
+	$(QUAKE2_BUILD)/cd_amiga.o \
+	$(QUAKE2_BUILD)/cl_cin.o \
+	$(QUAKE2_BUILD)/cl_ents.o \
+	$(QUAKE2_BUILD)/cl_fx.o \
+	$(QUAKE2_BUILD)/cl_input.o \
+	$(QUAKE2_BUILD)/cl_inv.o \
+	$(QUAKE2_BUILD)/cl_main.o \
+	$(QUAKE2_BUILD)/cl_newfx.o \
+	$(QUAKE2_BUILD)/cl_parse.o \
+	$(QUAKE2_BUILD)/cl_scrn.o \
+      	$(QUAKE2_BUILD)/cl_pred.o \
+	$(QUAKE2_BUILD)/cl_tent.o \
+	$(QUAKE2_BUILD)/cl_view.o \
+	$(QUAKE2_BUILD)/console.o \
+      	$(QUAKE2_BUILD)/cmd.o \
+	$(QUAKE2_BUILD)/cmodel.o \
+	$(QUAKE2_BUILD)/common.o \
+	$(QUAKE2_BUILD)/crc.o \
+	$(QUAKE2_BUILD)/cvar.o \
+	$(QUAKE2_BUILD)/files.o \
+      	$(QUAKE2_BUILD)/in_amiga.o \
+	$(QUAKE2_BUILD)/keys.o \
+	$(QUAKE2_BUILD)/md4.o \
+	$(QUAKE2_BUILD)/menu.o \
+	$(QUAKE2_BUILD)/net_chan.o \
+      	$(QUAKE2_BUILD)/net_amiga.o \
+	$(QUAKE2_BUILD)/pmove.o \
+      	$(QUAKE2_BUILD)/q_shamiga.o \
+	$(QUAKE2_BUILD)/qmenu.o \
+      	$(QUAKE2_BUILD)/snd_dma.o \
+	$(QUAKE2_BUILD)/snd_mem.o \
+	$(QUAKE2_BUILD)/snd_mix.o \
+      	$(QUAKE2_BUILD)/snd_amiga.o \
+	$(QUAKE2_BUILD)/sv_ccmds.o \
+	$(QUAKE2_BUILD)/sv_ents.o \
+	$(QUAKE2_BUILD)/sv_game.o \
+      	$(QUAKE2_BUILD)/sv_init.o \
+	$(QUAKE2_BUILD)/sv_main.o \
+	$(QUAKE2_BUILD)/sv_send.o \
+	$(QUAKE2_BUILD)/sv_user.o \
+      	$(QUAKE2_BUILD)/sv_world.o \
+	$(QUAKE2_BUILD)/sys_amiga.o \
+	$(QUAKE2_BUILD)/in_mouse.o \
+	$(QUAKE2_BUILD)/vid_dll.o \
+	$(QUAKE2_BUILD)/vid_menu.o \
+      	$(QUAKE2_BUILD)/in_joy.o \
+	$(QUAKE2_BUILD)/in_psx.o \
+	$(QUAKE2_BUILD)/twfsound_cd.o \
+	$(QUAKE2_BUILD)/mhandler.o \
+	$(GAME_BUILD)/m_flash.o \
+	$(GAME_BUILD)/q_shared.o \
+#	$(QUAKE2_BUILD)/in_pcjoy.o
+
+
+GAME_OBJS =\
+	$(GAME_BUILD)/g_ai.o \
+	$(GAME_BUILD)/g_chase.o \
+	$(GAME_BUILD)/g_cmds.o \
+	$(GAME_BUILD)/g_combat.o \
+	$(GAME_BUILD)/g_func.o \
+	$(GAME_BUILD)/g_items.o \
+	$(GAME_BUILD)/g_main.o \
+	$(GAME_BUILD)/g_misc.o \
+	$(GAME_BUILD)/g_monster.o \
+	$(GAME_BUILD)/g_phys.o \
+	$(GAME_BUILD)/g_save.o \
+	$(GAME_BUILD)/g_spawn.o \
+	$(GAME_BUILD)/g_svcmds.o \
+	$(GAME_BUILD)/g_target.o \
+	$(GAME_BUILD)/g_trigger.o \
+	$(GAME_BUILD)/g_turret.o \
+	$(GAME_BUILD)/g_utils.o \
+	$(GAME_BUILD)/g_weapon.o \
+	$(GAME_BUILD)/m_actor.o \
+	$(GAME_BUILD)/m_berserk.o \
+	$(GAME_BUILD)/m_boss2.o \
+	$(GAME_BUILD)/m_boss3.o \
+	$(GAME_BUILD)/m_boss31.o \
+	$(GAME_BUILD)/m_boss32.o \
+	$(GAME_BUILD)/m_brain.o \
+	$(GAME_BUILD)/m_chick.o \
+	$(GAME_BUILD)/m_flash.o \
+	$(GAME_BUILD)/m_flipper.o \
+	$(GAME_BUILD)/m_float.o \
+	$(GAME_BUILD)/m_flyer.o \
+	$(GAME_BUILD)/m_gladiator.o \
+	$(GAME_BUILD)/m_gunner.o \
+	$(GAME_BUILD)/m_hover.o \
+	$(GAME_BUILD)/m_infantry.o \
+	$(GAME_BUILD)/m_insane.o \
+	$(GAME_BUILD)/m_medic.o \
+	$(GAME_BUILD)/m_move.o \
+	$(GAME_BUILD)/m_mutant.o \
+	$(GAME_BUILD)/m_parasite.o \
+	$(GAME_BUILD)/m_soldier.o \
+	$(GAME_BUILD)/m_supertank.o \
+	$(GAME_BUILD)/m_tank.o \
+	$(GAME_BUILD)/p_client.o \
+	$(GAME_BUILD)/p_hud.o \
+	$(GAME_BUILD)/p_trail.o \
+	$(GAME_BUILD)/p_view.o \
+	$(GAME_BUILD)/p_weapon.o \
+	$(GAME_BUILD)/q_shared.o
+
+CTF_OBJS =\
+	$(CTF_BUILD)/g_ai.o \
+	$(CTF_BUILD)/g_chase.o \
+	$(CTF_BUILD)/g_cmds.o \
+	$(CTF_BUILD)/g_combat.o \
+	$(CTF_BUILD)/g_ctf.o \
+	$(CTF_BUILD)/g_func.o \
+	$(CTF_BUILD)/g_items.o \
+	$(CTF_BUILD)/g_main.o \
+	$(CTF_BUILD)/g_misc.o \
+	$(CTF_BUILD)/g_monster.o \
+	$(CTF_BUILD)/g_phys.o \
+	$(CTF_BUILD)/g_save.o \
+	$(CTF_BUILD)/g_spawn.o \
+	$(CTF_BUILD)/g_svcmds.o \
+	$(CTF_BUILD)/g_target.o \
+	$(CTF_BUILD)/g_trigger.o \
+	$(CTF_BUILD)/g_utils.o \
+	$(CTF_BUILD)/g_weapon.o \
+	$(CTF_BUILD)/menu.o \
+	$(CTF_BUILD)/move.o \
+	$(CTF_BUILD)/client.o \
+	$(CTF_BUILD)/hud.o \
+	$(CTF_BUILD)/trail.o \
+	$(CTF_BUILD)/view.o \
+	$(CTF_BUILD)/weapon.o \
+	$(CTF_BUILD)/shared.o
+
+	
+ROGUE_OBJS =\
+	$(ROGUE_BUILD)/g_ai.o \
+	$(ROGUE_BUILD)/g_chase.o \
+	$(ROGUE_BUILD)/g_cmds.o \
+	$(ROGUE_BUILD)/g_combat.o \
+	$(ROGUE_BUILD)/g_func.o \
+	$(ROGUE_BUILD)/g_items.o \
+	$(ROGUE_BUILD)/g_main.o \
+	$(ROGUE_BUILD)/g_misc.o \
+	$(ROGUE_BUILD)/g_monster.o \
+	$(ROGUE_BUILD)/g_newai.o \
+	$(ROGUE_BUILD)/g_newdm.o \
+	$(ROGUE_BUILD)/g_newfnc.o \
+	$(ROGUE_BUILD)/g_newtarg.o \
+	$(ROGUE_BUILD)/g_newtrig.o \
+	$(ROGUE_BUILD)/g_newweap.o \
+	$(ROGUE_BUILD)/g_phys.o \
+	$(ROGUE_BUILD)/g_spawn.o \
+	$(ROGUE_BUILD)/g_sphere.o \
+	$(ROGUE_BUILD)/g_svcmds.o \
+	$(ROGUE_BUILD)/g_target.o \
+	$(ROGUE_BUILD)/g_trigger.o \
+	$(ROGUE_BUILD)/g_turret.o \
+	$(ROGUE_BUILD)/g_utils.o \
+	$(ROGUE_BUILD)/g_weapon.o \
+	$(ROGUE_BUILD)/ball.o \
+	$(ROGUE_BUILD)/tag.o \
+	$(ROGUE_BUILD)/berserker.o \
+	$(ROGUE_BUILD)/boss2.o \
+	$(ROGUE_BUILD)/boss3.o \
+	$(ROGUE_BUILD)/boss31.o \
+	$(ROGUE_BUILD)/boss32.o \
+	$(ROGUE_BUILD)/brain.o \
+	$(ROGUE_BUILD)/carrier.o \
+	$(ROGUE_BUILD)/chick.o \
+	$(ROGUE_BUILD)/flipper.o \
+	$(ROGUE_BUILD)/float.o \
+	$(ROGUE_BUILD)/flyer.o \
+	$(ROGUE_BUILD)/gladiator.o \
+	$(ROGUE_BUILD)/gunner.o \
+	$(ROGUE_BUILD)/hover.o \
+	$(ROGUE_BUILD)/infantry.o \
+	$(ROGUE_BUILD)/insane.o \
+	$(ROGUE_BUILD)/medic.o \
+	$(ROGUE_BUILD)/move.o \
+	$(ROGUE_BUILD)/mutant.o \
+	$(ROGUE_BUILD)/parasite.o \
+	$(ROGUE_BUILD)/soldier.o \
+	$(ROGUE_BUILD)/stalker.o \
+	$(ROGUE_BUILD)/supertank.o \
+	$(ROGUE_BUILD)/tank.o \
+	$(ROGUE_BUILD)/turret.o \
+	$(ROGUE_BUILD)/widow.o \
+	$(ROGUE_BUILD)/widow2.o \
+	$(ROGUE_BUILD)/client.o \
+	$(ROGUE_BUILD)/hud.o \
+	$(ROGUE_BUILD)/trail.o \
+	$(ROGUE_BUILD)/view.o \
+	$(ROGUE_BUILD)/weapon.o \
+	$(ROGUE_BUILD)/savegame.o \
+	$(ROGUE_BUILD)/flash.o \
+	$(ROGUE_BUILD)/shared.o
+	#$(ROGUE_BUILD)/rand.o
+
+XATRIX_OBJS =\
+	$(XATRIX_BUILD)/g_ai.o \
+	$(XATRIX_BUILD)/g_chase.o \
+	$(XATRIX_BUILD)/g_cmds.o \
+	$(XATRIX_BUILD)/g_combat.o \
+	$(XATRIX_BUILD)/g_func.o \
+	$(XATRIX_BUILD)/g_items.o \
+	$(XATRIX_BUILD)/g_main.o \
+	$(XATRIX_BUILD)/g_misc.o \
+	$(XATRIX_BUILD)/g_monster.o \
+	$(XATRIX_BUILD)/g_phys.o \
+	$(XATRIX_BUILD)/g_spawn.o \
+	$(XATRIX_BUILD)/g_svcmds.o \
+	$(XATRIX_BUILD)/g_target.o \
+	$(XATRIX_BUILD)/g_trigger.o \
+	$(XATRIX_BUILD)/g_turret.o \
+	$(XATRIX_BUILD)/g_utils.o \
+	$(XATRIX_BUILD)/g_weapon.o \
+	$(XATRIX_BUILD)/berserker.o \
+	$(XATRIX_BUILD)/boss2.o \
+	$(XATRIX_BUILD)/boss3.o \
+	$(XATRIX_BUILD)/boss31.o \
+	$(XATRIX_BUILD)/boss32.o \
+	$(XATRIX_BUILD)/boss5.o \
+	$(XATRIX_BUILD)/brain.o \
+	$(XATRIX_BUILD)/chick.o \
+	$(XATRIX_BUILD)/fixbot.o \
+	$(XATRIX_BUILD)/flipper.o \
+	$(XATRIX_BUILD)/float.o \
+	$(XATRIX_BUILD)/flyer.o \
+	$(XATRIX_BUILD)/gekk.o \
+	$(XATRIX_BUILD)/gladiator.o \
+	$(XATRIX_BUILD)/gladb.o \
+	$(XATRIX_BUILD)/gunner.o \
+	$(XATRIX_BUILD)/hover.o \
+	$(XATRIX_BUILD)/infantry.o \
+	$(XATRIX_BUILD)/insane.o \
+	$(XATRIX_BUILD)/medic.o \
+	$(XATRIX_BUILD)/move.o \
+	$(XATRIX_BUILD)/mutant.o \
+	$(XATRIX_BUILD)/parasite.o \
+	$(XATRIX_BUILD)/soldier.o \
+	$(XATRIX_BUILD)/supertank.o \
+	$(XATRIX_BUILD)/tank.o \
+	$(XATRIX_BUILD)/client.o \
+	$(XATRIX_BUILD)/hud.o \
+	$(XATRIX_BUILD)/trail.o \
+	$(XATRIX_BUILD)/view.o \
+	$(XATRIX_BUILD)/weapon.o \
+	$(XATRIX_BUILD)/savegame.o \
+	$(XATRIX_BUILD)/flash.o \
+	$(XATRIX_BUILD)/shared.o
+	#$(XATRIX_BUILD)/rand.o
+
+SOFT_OBJS =\
+	$(SOFT_BUILD)/r_aclip.o \
+	$(SOFT_BUILD)/r_alias.o \
+	$(SOFT_BUILD)/r_bsp.o \
+	$(SOFT_BUILD)/r_draw.o \
+	$(SOFT_BUILD)/r_edge.o \
+	$(SOFT_BUILD)/r_image.o \
+	$(SOFT_BUILD)/r_light.o \
+	$(SOFT_BUILD)/r_main.o \
+	$(SOFT_BUILD)/r_misc.o \
+	$(SOFT_BUILD)/r_model.o \
+	$(SOFT_BUILD)/r_part.o \
+	$(SOFT_BUILD)/r_poly.o \
+	$(SOFT_BUILD)/r_polyse.o \
+	$(SOFT_BUILD)/r_rast.o \
+	$(SOFT_BUILD)/r_scan.o \
+	$(SOFT_BUILD)/r_sprite.o \
+	$(SOFT_BUILD)/r_surf.o \
+	$(SOFT_BUILD)/sw_imp.o \
+	$(QUAKE2_BUILD)/q_shamiga.o \
+	$(GAME_BUILD)/q_shared.o
+
+GL_OBJS = \
+	$(GL_BUILD)/renderercache.o \
+	$(GL_BUILD)/gl_draw.o \
+	$(GL_BUILD)/gl_light.o \
+	$(GL_BUILD)/gl_mesh.o \
+	$(GL_BUILD)/gl_model.o \
+	$(GL_BUILD)/gl_rmain.o \
+	$(GL_BUILD)/gl_rmisc.o \
+	$(GL_BUILD)/gl_rsurf.o \
+      	$(GL_BUILD)/gl_image.o \
+	$(GL_BUILD)/gl_warp.o \
+	$(GL_BUILD)/gla_imp.o \
+	$(QUAKE2_BUILD)/q_shamiga.o \
+	$(GL_BUILD)/qgl_amiga.o \
+	$(GAME_BUILD)/q_shared.o
+
+GLNOLRU_OBJS = \
+	$(GLNOLRU_BUILD)/gl_draw.o \
+	$(GLNOLRU_BUILD)/gl_light.o \
+	$(GLNOLRU_BUILD)/gl_mesh.o \
+	$(GLNOLRU_BUILD)/gl_model.o \
+	$(GLNOLRU_BUILD)/gl_rmain.o \
+	$(GLNOLRU_BUILD)/gl_rmisc.o \
+	$(GLNOLRU_BUILD)/gl_rsurf.o \
+      	$(GLNOLRU_BUILD)/gl_image_nolru.o \
+	$(GLNOLRU_BUILD)/gl_warp.o \
+	$(GLNOLRU_BUILD)/gla_imp_nolru.o \
+	$(QUAKE2_BUILD)/q_shamiga.o \
+	$(GL_BUILD)/qgl_amiga.o \
+	$(GAME_BUILD)/q_shared.o
+
+SND_PAULA_OBJS = \
+	$(SND_PAULA_BUILD)/snd_amiga.o \
+	#$(SND_PAULA_BUILD)/snd_interrupt.o
+
+SND_AHI_OBJS = \
+	$(SND_AHI_BUILD)/snd_ahi.o \
+	#$(SND_AHI_BUILD)/snd_ahi68k.o
+
+VIDPLAY_OBJS = \
+	$(VIDPLAY_BUILD)/main.o \
+	$(VIDPLAY_BUILD)/cinematics.o \
+	$(VIDPLAY_BUILD)/sound.o
+
+
+# quake2 includes dep
+INC_Q = qcommon/qcommon.h qcommon/qfiles.h game/q_shared.h
+INC_C = client/client.h client/ref.h client/vid.h client/screen.h client/sound.h client/input.h \
+		client/keys.h client/console.h client/cdaudio.h game/q_shared.h
+
+INC_S = $(INC_Q) server/server.h game/game.h
+INC_G = game/g_local.h game/game.h game/q_shared.h
+INC_CTF = ctf/header/local.h ctf/header/game.h ctf/header/shared.h
+INC_ROG = rogue/header/local.h rogue/header/game.h rogue/header/shared.h
+INC_XAT = xatrix/header/local.h xatrix/header/game.h xatrix/header/shared.h
+
+# dll includes dep
+
+INC_R = ref_soft/r_local.h $(INC_Q) client/ref.h ref_soft/r_model.h game/q_shared.h
+INC_GL = ref_gl/gl_local.h $(INC_Q) client/ref.h ref_gl/qgl_MiniGL.h ref_gl/qgl.h ref_gl/gl_model.h amiga/renderercache.h
+INC_GLN = ref_glnolru/gl_local.h $(INC_Q) client/ref.h ref_glnolru/qgl.h ref_glnolru/qgl_MiniGL.h ref_glnolru/gl_model.h
+
+##### BUILD ALL
+#####
+
+QUAKE2	   = $(ARCH)/quake2
+GAME	   = $(ARCH)/baseq2/game68k.dll
+REF_SOFT   = $(ARCH)/ref_soft.dll
+REF_GL	   = $(ARCH)/ref_gl.dll
+REF_GLNOLRU= $(ARCH)/ref_glnolru.dll
+SND_PAULA  = $(ARCH)/snd_paula.dll
+SND_AHI	   = $(ARCH)/snd_ahi.dll
+VIDPLAY    = $(ARCH)/vidplay
+CTF	   = $(ARCH)/ctf/game68k.dll
+ROGUE	   = $(ARCH)/rogue/game68k.dll
+XATRIX	   = $(ARCH)/xatrix/game68k.dll
+ 
+#all: $(QUAKE2) $(GAME) $(REF_SOFT) $(REF_GL) $(REF_GLNOLRU) $(SND_PAULA) $(SND_AHI) $(CTF) $(ROGUE) $(XATRIX)
+all: $(QUAKE2) $(GAME) $(REF_SOFT) $(REF_GLNOLRU) $(SND_PAULA) $(SND_AHI) $(CTF) $(ROGUE) $(XATRIX)
+
+$(QUAKE2): $(QUAKE2_OBJS)
+	$(CC) -o $@ $(QUAKE2_BUILD)/#?.o \
+		$(GAME_BUILD)/q_shared.o \
+		$(GAME_BUILD)/m_flash.o $(LIBS)
+
+
+$(GAME): $(GAME_OBJS)
+	$(CC) -o $@ $(GAME_BUILD)/#?.o $(LIBS)
+
+
+$(CTF): $(CTF_OBJS)
+	$(CC) -o $@ $(CTF_BUILD)/#?.o $(LIBS)
+
+
+$(ROGUE): $(ROGUE_OBJS)
+	$(CC) -o $@ $(ROGUE_BUILD)/#?.o $(LIBS)
+
+
+$(XATRIX): $(XATRIX_OBJS)
+	$(CC) -o $@ $(XATRIX_BUILD)/#?.o $(LIBS)
+
+
+$(REF_SOFT): $(SOFT_OBJS)
+	$(CC) -o $@ $(SOFT_BUILD)/#?.o \
+		$(QUAKE2_BUILD)/q_shamiga.o \
+		$(GAME_BUILD)/q_shared.o $(LIBS)
+
+
+$(REF_GL): $(GL_OBJS)
+	$(CC) -o $@ $(GL_BUILD)/#?.o \
+		$(QUAKE2_BUILD)/q_shamiga.o \
+		$(GAME_BUILD)/q_shared.o $(LIBS2)
+
+
+$(REF_GLNOLRU): $(GLNOLRU_OBJS)
+	$(CC) -o $@ $(GLNOLRU_BUILD)/#?.o \
+		$(QUAKE2_BUILD)/q_shamiga.o \
+		$(GL_BUILD)/qgl_amiga.o \
+		$(GAME_BUILD)/q_shared.o $(LIBS2)
+
+
+$(SND_PAULA): $(SND_PAULA_OBJS)
+	$(CC) -o $@ $(SND_PAULA_BUILD)/#?.o $(LIBS)
+
+
+$(SND_AHI): $(SND_AHI_OBJS)
+	$(CC) -o $@ $(SND_AHI_BUILD)/#?.o $(LIBS)
+
+
+$(VIDPLAY): $(VIDPLAY_OBJS)
+	$(CC) -o $@ $(VIDPLAY_BUILD)/#?.o $(LIBS)
+
+ 
+
+##### DEPENDS
+#####
+
+
+#### QUAKE2
+
+$(QUAKE2_BUILD)/cd_amiga.o:  amiga/cd_amiga.c amiga/twfsound_cd.h $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/twfsound_cd.o: amiga/twfsound_cd.c amiga/twfsound_cd.h 
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/snd_amiga.o: amiga/snd_amiga.c $(INC_C) client/snd_loc.h amiga/snddll.h amiga/dll.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/sys_amiga.o: amiga/sys_amiga.c $(INC_C) amiga/dll.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/in_mouse.o:  amiga/in_mouse.c $(INC_C) amiga/in.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/vid_dll.o:   amiga/vid_dll.c $(INC_C) amiga/dll.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/vid_menu.o:  amiga/vid_menu.c $(INC_C) client/qmenu.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/in_joy.o:    amiga/in_joy.c $(INC_C) amiga/in.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/in_psx.o:    amiga/in_psx.c $(INC_C) amiga/in.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/in_amiga.o:  amiga/in_amiga.c $(INC_C) amiga/in.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/net_amiga.o: amiga/net_amiga.c $(INC_Q)
+	$(DO_CC_ATCP)
+
+$(QUAKE2_BUILD)/mhandler.o:  amiga/mhandler.s
+	$(DO_AS68K)
+
+$(QUAKE2_BUILD)/q_shamiga.o: amiga/q_shamiga.c $(INC_Q)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_cin.o:   client/cl_cin.c $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_ents.o:  client/cl_ents.c $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_fx.o:    client/cl_fx.c $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_input.o: client/cl_input.c $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_inv.o:   client/cl_inv.c $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_main.o:  client/cl_main.c $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_newfx.o: client/cl_newfx.c $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_parse.o: client/cl_parse.c  $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_scrn.o:  client/cl_scrn.c  $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_pred.o:  client/cl_pred.c  $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_tent.o:  client/cl_tent.c  $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cl_view.o:  client/cl_view.c  $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/console.o:  client/console.c $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/keys.o:	    client/keys.c $(INC_C)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/menu.o:	    client/menu.c $(INC_C) client/qmenu.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/qmenu.o:    client/qmenu.c $(INC_C) client/qmenu.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/snd_dma.o:  client/snd_dma.c $(INC_C) client/snd_loc.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/snd_mem.o:  client/snd_mem.c $(INC_C) client/snd_loc.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/snd_mix.o:  client/snd_mix.c $(INC_C) client/snd_loc.h
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cmd.o:      qcommon/cmd.c $(INC_Q)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cmodel.o:   qcommon/cmodel.c $(INC_Q) 
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/common.o:   qcommon/common.c $(INC_Q)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/crc.o:      qcommon/crc.c $(INC_Q)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/cvar.o:     qcommon/cvar.c $(INC_Q)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/files.o:    qcommon/files.c $(INC_Q)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/md4.o:	    qcommon/md4.c
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/net_chan.o: qcommon/net_chan.c $(INC_Q)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/pmove.o:    qcommon/pmove.c $(INC_Q)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/sv_ccmds.o: server/sv_ccmds.c $(INC_S)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/sv_ents.o:  server/sv_ents.c $(INC_S)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/sv_game.o:  server/sv_game.c $(INC_S)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/sv_init.o:  server/sv_init.c $(INC_S)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/sv_main.o:  server/sv_main.c $(INC_S)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/sv_send.o:  server/sv_send.c $(INC_S)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/sv_user.o:  server/sv_user.c $(INC_S)
+	$(DO_CC)
+
+$(QUAKE2_BUILD)/sv_world.o: server/sv_world.c $(INC_S)
+	$(DO_CC)
+
+#$(QUAKE2_BUILD)/in_pcjoy.o: amiga/in_pcjoy.c
+
+
+##### GAME DLL
+
+$(GAME_BUILD)/g_ai.o: game/g_ai.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_chase.o: game/g_chase.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_cmds.o: game/g_cmds.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_combat.o: game/g_combat.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_func.o: game/g_func.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_items.o: game/g_items.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_main.o: game/g_main.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_misc.o: game/g_misc.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_monster.o: game/g_monster.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_phys.o: game/g_phys.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_save.o: game/g_save.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_spawn.o: game/g_spawn.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_svcmds.o: game/g_svcmds.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_target.o: game/g_target.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_trigger.o: game/g_trigger.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_turret.o: game/g_turret.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_utils.o: game/g_utils.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/g_weapon.o: game/g_weapon.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_actor.o: game/m_actor.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_berserk.o: game/m_berserk.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_boss2.o: game/m_boss2.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_boss3.o: game/m_boss3.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_boss31.o: game/m_boss31.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_boss32.o: game/m_boss32.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_brain.o: game/m_brain.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_chick.o: game/m_chick.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_flash.o: game/m_flash.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_flipper.o: game/m_flipper.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_float.o: game/m_float.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_flyer.o: game/m_flyer.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_gladiator.o: game/m_gladiator.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_gunner.o: game/m_gunner.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_hover.o: game/m_hover.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_infantry.o: game/m_infantry.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_insane.o: game/m_insane.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_medic.o: game/m_medic.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_move.o: game/m_move.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_mutant.o: game/m_mutant.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_parasite.o: game/m_parasite.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_soldier.o: game/m_soldier.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_supertank.o: game/m_supertank.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/m_tank.o: game/m_tank.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/p_client.o: game/p_client.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/p_hud.o: game/p_hud.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/p_trail.o: game/p_trail.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/p_view.o: game/p_view.c 	$(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/p_weapon.o: game/p_weapon.c $(INC_G)
+	$(DO_CC)
+
+$(GAME_BUILD)/q_shared.o: game/q_shared.c $(INC_G)
+	$(DO_CC)
+
+
+##### CTF
+
+$(CTF_BUILD)/g_ai.o: ctf/g_ai.c 	$(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_chase.o: ctf/g_chase.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_cmds.o: ctf/g_cmds.c 	$(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_combat.o: ctf/g_combat.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_ctf.o: ctf/g_ctf.c 	$(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_func.o: ctf/g_func.c 	$(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_items.o: ctf/g_items.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_main.o: ctf/g_main.c 	$(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_misc.o: ctf/g_misc.c 	$(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_monster.o: ctf/g_monster.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_phys.o: ctf/g_phys.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_save.o: ctf/g_save.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/menu.o: ctf/menu/menu.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/move.o: ctf/monster/move.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_spawn.o: ctf/g_spawn.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_svcmds.o: ctf/g_svcmds.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_target.o: ctf/g_target.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_trigger.o: ctf/g_trigger.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_weapon.o: ctf/g_weapon.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/g_utils.o: ctf/g_utils.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/client.o: ctf/player/client.c 	$(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/hud.o: ctf/player/hud.c 	$(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/trail.o: ctf/player/trail.c $(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/view.o: ctf/player/view.c 	$(INC_CTF)
+	$(DO_CC)
+
+$(CTF_BUILD)/weapon.o: ctf/player/weapon.c $(INC_CTF)
+	$(DO_CC)
+
+
+$(CTF_BUILD)/shared.o: ctf/shared/shared.c $(INC_ROG)
+	$(DO_CC)
+
+
+##### ROGUE
+
+$(ROGUE_BUILD)/g_ai.o: rogue/g_ai.c 	$(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_chase.o: rogue/g_chase.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_cmds.o: rogue/g_cmds.c 	$(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_combat.o: rogue/g_combat.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_func.o: rogue/g_func.c 	$(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_items.o: rogue/g_items.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_main.o: rogue/g_main.c 	$(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_misc.o: rogue/g_misc.c 	$(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_monster.o: rogue/g_monster.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_newai.o: rogue/g_newai.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_newdm.o: rogue/g_newdm.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_newfnc.o: rogue/g_newfnc.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_newtarg.o: rogue/g_newtarg.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_newtrig.o: rogue/g_newtrig.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_newweap.o: rogue/g_newweap.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_phys.o: rogue/g_phys.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_spawn.o: rogue/g_spawn.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_sphere.o: rogue/g_sphere.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_svcmds.o: rogue/g_svcmds.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_target.o: rogue/g_target.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_trigger.o: rogue/g_trigger.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_turret.o: rogue/g_turret.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_utils.o: rogue/g_utils.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/g_weapon.o: rogue/g_weapon.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/ball.o: rogue/dm/ball.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/tag.o: rogue/dm/tag.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/berserker.o: rogue/monster/berserker/berserker.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/boss2.o: rogue/monster/boss2/boss2.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/boss3.o: rogue/monster/boss3/boss3.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/boss31.o: rogue/monster/boss3/boss31.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/boss32.o: rogue/monster/boss3/boss32.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/brain.o: rogue/monster/brain/brain.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/carrier.o: rogue/monster/carrier/carrier.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/chick.o: rogue/monster/chick/chick.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/flipper.o: rogue/monster/flipper/flipper.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/float.o: rogue/monster/float/float.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/flyer.o: rogue/monster/flyer/flyer.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/gladiator.o: rogue/monster/gladiator/gladiator.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/gunner.o: rogue/monster/gunner/gunner.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/hover.o: rogue/monster/hover/hover.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/infantry.o: rogue/monster/infantry/infantry.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/insane.o: rogue/monster/insane/insane.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/medic.o: rogue/monster/medic/medic.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/move.o: rogue/monster/misc/move.c 	$(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/mutant.o: rogue/monster/mutant/mutant.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/parasite.o: rogue/monster/parasite/parasite.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/soldier.o: rogue/monster/soldier/soldier.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/supertank.o: rogue/monster/supertank/supertank.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/tank.o: rogue/monster/tank/tank.c 	$(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/turret.o: rogue/monster/turret/turret.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/widow.o: rogue/monster/widow/widow.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/widow2.o: rogue/monster/widow/widow2.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/stalker.o: rogue/monster/stalker/stalker.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/client.o: rogue/player/client.c 	$(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/hud.o: rogue/player/hud.c 	$(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/trail.o: rogue/player/trail.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/view.o: rogue/player/view.c 	$(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/weapon.o: rogue/player/weapon.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/flash.o: rogue/shared/flash.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/savegame.o: rogue/savegame/savegame.c $(INC_ROG)
+	$(DO_CC)
+
+$(ROGUE_BUILD)/shared.o: rogue/shared/shared.c $(INC_ROG)
+	$(DO_CC)
+
+######
+
+
+##### 
+
+##### XATRIX
+
+$(XATRIX_BUILD)/g_ai.o: xatrix/g_ai.c 	$(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_chase.o: xatrix/g_chase.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_cmds.o: xatrix/g_cmds.c 	$(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_combat.o: xatrix/g_combat.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_func.o: xatrix/g_func.c 	$(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_items.o: xatrix/g_items.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_main.o: xatrix/g_main.c 	$(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_misc.o: xatrix/g_misc.c 	$(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_monster.o: xatrix/g_monster.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_newai.o: xatrix/g_newai.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_newdm.o: xatrix/g_newdm.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_newfnc.o: xatrix/g_newfnc.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_newtarg.o: xatrix/g_newtarg.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_newtrig.o: xatrix/g_newtrig.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_newweap.o: xatrix/g_newweap.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_phys.o: xatrix/g_phys.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_spawn.o: xatrix/g_spawn.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_sphere.o: xatrix/g_sphere.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_svcmds.o: xatrix/g_svcmds.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_target.o: xatrix/g_target.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_trigger.o: xatrix/g_trigger.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_turret.o: xatrix/g_turret.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_utils.o: xatrix/g_utils.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/g_weapon.o: xatrix/g_weapon.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/berserker.o: xatrix/monster/berserker/berserker.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/boss2.o: xatrix/monster/boss2/boss2.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/boss3.o: xatrix/monster/boss3/boss3.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/boss31.o: xatrix/monster/boss3/boss31.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/boss32.o: xatrix/monster/boss3/boss32.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/boss5.o: xatrix/monster/boss5/boss5.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/brain.o: xatrix/monster/brain/brain.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/fixbot.o: xatrix/monster/fixbot/fixbot.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/chick.o: xatrix/monster/chick/chick.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/flipper.o: xatrix/monster/flipper/flipper.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/float.o: xatrix/monster/float/float.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/flyer.o: xatrix/monster/flyer/flyer.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/gekk.o: xatrix/monster/gekk/gekk.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/gladiator.o: xatrix/monster/gladiator/gladiator.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/gladb.o: xatrix/monster/gladiator/gladb.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/gunner.o: xatrix/monster/gunner/gunner.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/hover.o: xatrix/monster/hover/hover.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/infantry.o: xatrix/monster/infantry/infantry.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/insane.o: xatrix/monster/insane/insane.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/medic.o: xatrix/monster/medic/medic.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/move.o: xatrix/monster/misc/move.c 	$(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/mutant.o: xatrix/monster/mutant/mutant.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/parasite.o: xatrix/monster/parasite/parasite.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/soldier.o: xatrix/monster/soldier/soldier.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/supertank.o: xatrix/monster/supertank/supertank.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/tank.o: xatrix/monster/tank/tank.c 	$(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/client.o: xatrix/player/client.c 	$(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/hud.o: xatrix/player/hud.c 	$(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/trail.o: xatrix/player/trail.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/view.o: xatrix/player/view.c 	$(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/weapon.o: xatrix/player/weapon.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/flash.o: xatrix/shared/flash.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/savegame.o: xatrix/savegame/savegame.c $(INC_XAT)
+	$(DO_CC)
+
+$(XATRIX_BUILD)/shared.o: xatrix/shared/shared.c $(INC_XAT)
+	$(DO_CC)
+
+
+##### SOFT DLL
+
+$(SOFT_BUILD)/r_aclip.o: ref_soft/r_aclip.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_alias.o: ref_soft/r_alias.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_bsp.o: ref_soft/r_bsp.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_draw.o: ref_soft/r_draw.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_edge.o: ref_soft/r_edge.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_image.o: ref_soft/r_image.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_light.o: ref_soft/r_light.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_main.o: ref_soft/r_main.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_misc.o: ref_soft/r_misc.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_model.o: ref_soft/r_model.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_part.o: ref_soft/r_part.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_poly.o: ref_soft/r_poly.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_polyse.o: ref_soft/r_polyse.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_rast.o: ref_soft/r_rast.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_scan.o: ref_soft/r_scan.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_sprite.o: ref_soft/r_sprite.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/r_surf.o: ref_soft/r_surf.c 	$(INC_R)
+	$(DO_CC)
+
+$(SOFT_BUILD)/sw_imp.o: amiga/sw_imp.c 		$(INC_R)
+	$(DO_CC)
+
+
+##### GL DLL
+
+
+$(GL_BUILD)/gl_draw.o: ref_gl/gl_draw.c 	$(INC_GL)
+	$(DO_CC)
+
+$(GL_BUILD)/gl_light.o: ref_gl/gl_light.c 	$(INC_GL)
+	$(DO_CC)
+
+$(GL_BUILD)/gl_mesh.o: ref_gl/gl_mesh.c 	$(INC_GL)
+	$(DO_CC)
+
+$(GL_BUILD)/gl_model.o: ref_gl/gl_model.c 	$(INC_GL)
+	$(DO_CC)
+
+$(GL_BUILD)/gl_rmain.o: ref_gl/gl_rmain.c 	$(INC_GL)
+	$(DO_CC)
+ 
+$(GL_BUILD)/gl_rmisc.o: ref_gl/gl_rmisc.c 	$(INC_GL)
+	$(DO_CC)
+
+$(GL_BUILD)/gl_rsurf.o: ref_gl/gl_rsurf.c 	$(INC_GL)
+	$(DO_CC)
+
+$(GL_BUILD)/gl_image.o: ref_gl/gl_image.c 	$(INC_GL)
+	$(DO_CC)
+ 
+$(GL_BUILD)/gl_warp.o: ref_gl/gl_warp.c 	$(INC_GL)
+	$(DO_CC)
+
+$(GL_BUILD)/gla_imp.o: amiga/gla_imp.c 		$(INC_GL)
+	$(DO_CC)
+
+$(GL_BUILD)/renderercache.o: amiga/renderercache.c amiga/renderercache.h
+	$(DO_CC)
+
+$(GL_BUILD)/qgl_amiga.o: amiga/qgl_amiga.c 	$(INC_GL) amiga/dll.h
+	$(DO_CC)
+
+
+##### GLNOLRU DLL
+
+
+$(GLNOLRU_BUILD)/gl_draw.o: ref_glnolru/gl_draw.c 	$(INC_GLN)
+	$(DO_CC)
+
+$(GLNOLRU_BUILD)/gl_light.o: ref_glnolru/gl_light.c 	$(INC_GLN)
+	$(DO_CC)
+
+$(GLNOLRU_BUILD)/gl_mesh.o: ref_glnolru/gl_mesh.c 	$(INC_GLN)
+	$(DO_CC)
+
+$(GLNOLRU_BUILD)/gl_model.o: ref_glnolru/gl_model.c 	$(INC_GLN)
+	$(DO_CC)
+
+$(GLNOLRU_BUILD)/gl_rmain.o: ref_glnolru/gl_rmain.c 	$(INC_GLN) 
+	$(DO_CC)
+ 
+$(GLNOLRU_BUILD)/gl_rmisc.o: ref_glnolru/gl_rmisc.c 	$(INC_GLN)
+	$(DO_CC)
+
+$(GLNOLRU_BUILD)/gl_rsurf.o: ref_glnolru/gl_rsurf.c 	$(INC_GLN)
+	$(DO_CC)
+
+$(GLNOLRU_BUILD)/gl_image_nolru.o: ref_glnolru/gl_image_nolru.c $(INC_GLN)
+	$(DO_CC)
+ 
+$(GLNOLRU_BUILD)/gl_warp.o: ref_glnolru/gl_warp.c 	$(INC_GLN)
+	$(DO_CC)
+
+$(GLNOLRU_BUILD)/gla_imp_nolru.o: amiga/gla_imp_nolru.c $(INC_GLN)
+	$(DO_CC)
+
+
+
+##### SOUND DLLS
+
+$(SND_PAULA_BUILD)/snd_amiga.o: snd_paula/snd_amiga.c 	amiga/dll.h amiga/snddll.h
+	$(DO_CC)
+
+$(SND_PAULA_BUILD)/snd_interrupt.o: snd_paula/snd_interrupt.s
+	$(DO_AS68K)
+
+$(SND_AHI_BUILD)/snd_ahi.o: snd_ahi/snd_ahi.c 		amiga/dll.h amiga/snddll.h
+	$(DO_CC)
+
+$(SND_AHI_BUILD)/snd_ahi68k.o: snd_ahi/snd_ahi68k.c
+	$(DO_CC)
+
+
+
+##### VIDPLAYER
+
+$(VIDPLAY_BUILD)/main.o:  	vidplay_dll/main.c
+	$(DO_CC_VIDP) 
+
+$(VIDPLAY_BUILD)/cinematics.o: 	vidplay_dll/cinematics.c
+	$(DO_CC_VIDP) 
+
+$(VIDPLAY_BUILD)/sound.o: 	vidplay_dll/sound.c	$(INC_C) amiga/dll.h
+	$(DO_CC_VIDP)
+
+
+
+
