@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // Cowcat  //Thanks Phx!
 
-#ifdef WOS
+#if defined WOS && defined (__VBCC__)
 #define DLLFUNC __saveds
 #else
 #define DLLFUNC

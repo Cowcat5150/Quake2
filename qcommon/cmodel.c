@@ -949,8 +949,8 @@ void CM_BoxLeafnums_r (int nodenum)
 		node = &map_nodes[nodenum];
 		plane = node->plane;
 
-		//s = BoxOnPlaneSidet (leaf_mins, leaf_maxs, plane);
-		s = BOX_ON_PLANE_SIDE(leaf_mins, leaf_maxs, plane);
+		s = BoxOnPlaneSide (leaf_mins, leaf_maxs, plane);
+		//s = BOX_ON_PLANE_SIDE(leaf_mins, leaf_maxs, plane);
 
 		if (s == 1)
 			nodenum = node->children[0];
