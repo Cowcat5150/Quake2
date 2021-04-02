@@ -432,19 +432,23 @@ Returns 1, 2, or 1 + 2
 ==================
 */
 
+#if 0
+
 int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 {
 	float	dist1, dist2;
 	int	sides;
 
-	#if 0
+	#if 1
 	// fast axial cases
 	if (p->type < 3)
 	{
 		if (p->dist <= emins[p->type])
 			return 1;
+
 		if (p->dist >= emaxs[p->type])
 			return 2;
+
 		return 3;
 	}
 	#endif
@@ -511,6 +515,49 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 	return sides;
 }
 
+#else
+
+int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
+{
+	float	dist[2];
+	int	sides, b ,i;
+
+	// fast axial cases
+	if (p->type < 3)
+	{
+		if (p->dist <= emins[p->type])
+			return 1;
+
+		if (p->dist >= emaxs[p->type])
+			return 2;
+
+		return 3;
+	}
+
+	dist[0] = dist[1] = 0;
+
+	if (p->signbits < 8)
+	{
+		for (i=0 ; i<3 ; i++)
+		{
+			b = ( p->signbits >> i ) & 1;
+			dist[ b] += p->normal[i] * emaxs[i];
+			dist[!b] += p->normal[i] * emins[i];
+		}
+	}
+
+	sides = 0;
+
+	if (dist[0] >= p->dist)
+		sides = 1;
+
+	if (dist[1] < p->dist)
+		sides |= 2;
+
+	return sides;
+}
+
+#endif
 
 void ClearBounds (vec3_t mins, vec3_t maxs)
 {

@@ -24,21 +24,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "../amiga/dll.h"
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <proto/exec.h>
 #include <proto/dos.h>
 #include <dos/dosextens.h>
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined(WARPUP)
 #pragma pack(pop)
-#endif
 
 #endif
 
@@ -225,6 +217,11 @@ edict_t *CreateTargetChangeLevel(char *map)
 {
 	edict_t *ent;
 
+	if (!map)
+	{
+		return NULL;
+	}
+
 	ent = G_Spawn ();
 	ent->classname = "target_changelevel";
 	Com_sprintf(level.nextmap, sizeof(level.nextmap), "%s", map);
@@ -242,9 +239,9 @@ The timelimit or fraglimit has been exceeded
 
 void EndDMLevel (void)
 {
-	edict_t			*ent;
-	char 			*s, *t, *f;
-	static const char 	*seps = " ,\n\r";
+	edict_t	*ent;
+	char 	*s, *t, *f;
+	static const char *seps = " ,\n\r";
 
 	// stay on same level flag
 	if ((int)dmflags->value & DF_SAME_LEVEL)
@@ -418,6 +415,10 @@ void ExitLevel (void)
 		if (ent->health > ent->client->pers.max_health)
 			ent->health = ent->client->pers.max_health;
 	}
+
+	// future - Cowcat
+	//debristhisframe = 0;
+	//gibsthisframe = 0;
 }
 
 /*
@@ -434,13 +435,12 @@ DLLFUNC void G_RunFrame (void)
 	edict_t *ent;
 
 	level.framenum++;
-	level.time = level.framenum*FRAMETIME;
+	level.time = level.framenum * FRAMETIME;
 
 	// choose a client for monsters to target this frame
 	AI_SetSightClient ();
 
 	// exit intermissions
-
 	if (level.exitintermission)
 	{
 		ExitLevel ();
@@ -494,30 +494,10 @@ DLLFUNC void G_RunFrame (void)
 
 #ifdef AMIGAOS
 
-#if 0 // Cowcat
-DLLFUNC void* dllFindResource(int id, char *pType)
-{
-    	return NULL;
-}
-
-DLLFUNC void* dllLoadResource(void *pHandle)
-{
-    	return NULL;
-}
-
-DLLFUNC void dllFreeResource(void *pHandle)
-{
-    	return;
-}
-#endif
-
 ULONG SegList;
 
 dll_tExportSymbol DLL_ExportSymbols[] =
 {
-    	//{(void *)dllFindResource, "dllFindResource"}, // Cowcat
-    	//{(void *)dllLoadResource, "dllLoadResource"},
-    	//{(void *)dllFreeResource, "dllFreeResource"},
     	{(void *)GetGameAPI, "GetGameAPI"},
     	{0,0}
 };
@@ -529,6 +509,7 @@ dll_tImportSymbol DLL_ImportSymbols[] =
 
 int DLL_Init(void)
 {
+	/*
     	struct CommandLineInterface *pCLI = Cli();
 
     	if (!pCLI)      // Who the f*ck started us ?
@@ -537,14 +518,14 @@ int DLL_Init(void)
     	SegList = (ULONG)(pCLI->cli_Module);
 
     	return 1;
+	*/
+
+	return 1;
 }
 
 void DLL_DeInit(void)
 {
 }
 
-#ifdef __GNUC__
-extern int main(int, char **); // new Cowcat
-#endif
 
 #endif /* AMIGA */

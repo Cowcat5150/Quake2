@@ -280,7 +280,12 @@ void ED_CallSpawn (edict_t *ent)
 	
 	spawn_t	*s;
 	gitem_t	*item;
-	int		i;
+	int	i;
+
+	if (!ent)
+	{
+		return;
+	}
 
 	if (!ent->classname)
 	{
@@ -309,6 +314,7 @@ void ED_CallSpawn (edict_t *ent)
 			return;
 		}
 	}
+
 	gi.dprintf ("%s doesn't have a spawn function\n", ent->classname);
 	
 }
@@ -321,8 +327,13 @@ ED_NewString
 char *ED_NewString (char *string)
 {
 	char	*newb, *new_p;
-	int		i,l;
+	int	i, l;
 	
+	if (!string)
+	{
+		return NULL;
+	}
+
 	l = strlen(string) + 1;
 
 	newb = gi.TagMalloc (l, TAG_LEVEL);
@@ -334,11 +345,14 @@ char *ED_NewString (char *string)
 		if (string[i] == '\\' && i < l-1)
 		{
 			i++;
+
 			if (string[i] == 'n')
 				*new_p++ = '\n';
+
 			else
 				*new_p++ = '\\';
 		}
+
 		else
 			*new_p++ = string[i];
 	}
@@ -363,6 +377,11 @@ void ED_ParseField (char *key, char *value, edict_t *ent)
 	byte	*b;
 	float	v;
 	vec3_t	vec;
+
+	if (!key || !value)
+	{
+		return;
+	}
 
 	for (f=fields ; f->name ; f++)	
 	{
@@ -429,14 +448,20 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 	char		keyname[256];
 	char		*com_token;
 
+	if (!ent)
+	{
+		return NULL;
+	}
+
 	init = false;
 	memset (&st, 0, sizeof(st));
 
-// go through all the dictionary pairs
+	// go through all the dictionary pairs
 	while (1)
 	{	
-	// parse key
+		// parse key
 		com_token = COM_Parse (&data);
+
 		if (com_token[0] == '}')
 			break;
 		if (!data)
@@ -444,8 +469,9 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		strncpy (keyname, com_token, sizeof(keyname)-1);
 		
-	// parse value	
+		// parse value	
 		com_token = COM_Parse (&data);
+
 		if (!data)
 			gi.error ("ED_ParseEntity: EOF without closing brace");
 
@@ -454,8 +480,8 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		init = true;	
 
-	// keynames with a leading underscore are used for utility comments,
-	// and are immediately discarded by quake
+		// keynames with a leading underscore are used for utility comments,
+		// and are immediately discarded by quake
 		if (keyname[0] == '_')
 			continue;
 
@@ -482,31 +508,39 @@ All but the last will have the teamchain field set to the next one
 void G_FindTeams (void)
 {
 	edict_t	*e, *e2, *chain;
-	int		i, j;
-	int		c, c2;
+	int	i, j;
+	int	c, c2;
 
 	c = 0;
 	c2 = 0;
+
 	for (i=1, e=g_edicts+i ; i < globals.num_edicts ; i++,e++)
 	{
 		if (!e->inuse)
 			continue;
+
 		if (!e->team)
 			continue;
+
 		if (e->flags & FL_TEAMSLAVE)
 			continue;
+
 		chain = e;
 		e->teammaster = e;
 		c++;
 		c2++;
+
 		for (j=i+1, e2=e+1 ; j < globals.num_edicts ; j++,e2++)
 		{
 			if (!e2->inuse)
 				continue;
+
 			if (!e2->team)
 				continue;
+
 			if (e2->flags & FL_TEAMSLAVE)
 				continue;
+
 			if (!strcmp(e->team, e2->team))
 			{
 				c2++;
@@ -533,17 +567,25 @@ parsing textual entity definitions out of an ent file.
 DLLFUNC void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 {
 	
-	edict_t		*ent;
-	int			inhibit;
-	char		*com_token;
-	int			i;
-	float		skill_level;
+	edict_t	*ent;
+	int	inhibit;
+	char	*com_token;
+	int	i;
+	float	skill_level;
+
+	if(!mapname || !entities || !spawnpoint)
+	{
+		return;
+	}
 
 	skill_level = floor (skill->value);
+
 	if (skill_level < 0)
 		skill_level = 0;
+
 	if (skill_level > 3)
 		skill_level = 3;
+
 	if (skill->value != skill_level)
 		gi.cvar_forceset("skill", va("%f", skill_level));
 
@@ -564,13 +606,15 @@ DLLFUNC void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 	ent = NULL;
 	inhibit = 0;
 
-// parse ents
+	// parse ents
 	while (1)
 	{
 		// parse the opening brace	
 		com_token = COM_Parse (&entities);
+
 		if (!entities)
 			break;
+
 		if (com_token[0] != '{')
 			gi.error ("ED_LoadFromFile: found %s when expecting {",com_token);
 
@@ -578,6 +622,7 @@ DLLFUNC void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 			ent = g_edicts;
 		else
 			ent = G_Spawn ();
+
 		entities = ED_ParseEdict (entities, ent);
 
 		// yet another map hack
@@ -596,6 +641,7 @@ DLLFUNC void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 					continue;
 				}
 			}
+
 			else
 			{
 				if ( /* ((coop->value) && (ent->spawnflags & SPAWNFLAG_NOT_COOP)) || */
@@ -811,10 +857,14 @@ Only used for the world.
 
 void SP_worldspawn (edict_t *ent)
 {
-	
+	if (!ent)
+	{
+		return;
+	}
+
 	ent->movetype = MOVETYPE_PUSH;
 	ent->solid = SOLID_BSP;
-	ent->inuse = true;			// since the world doesn't use G_Spawn()
+	ent->inuse = true;		// since the world doesn't use G_Spawn()
 	ent->s.modelindex = 1;		// world model is always index 1
 
 	//---------------

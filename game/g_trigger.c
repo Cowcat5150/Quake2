@@ -22,6 +22,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 void InitTrigger (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	if (!VectorCompare (self->s.angles, vec3_origin))
 		G_SetMovedir (self->s.angles, self->movedir);
 
@@ -35,6 +40,11 @@ void InitTrigger (edict_t *self)
 // the wait time has passed, so set back up for another activation
 void multi_wait (edict_t *ent)
 {
+	if (!ent)
+	{
+		return;
+	}
+
 	ent->nextthink = 0;
 }
 
@@ -44,6 +54,11 @@ void multi_wait (edict_t *ent)
 // so wait for the delay time before firing
 void multi_trigger (edict_t *ent)
 {
+	if (!ent)
+	{
+		return;
+	}
+
 	if (ent->nextthink)
 		return;		// already been triggered
 
@@ -54,8 +69,10 @@ void multi_trigger (edict_t *ent)
 		ent->think = multi_wait;
 		ent->nextthink = level.time + ent->wait;
 	}
+
 	else
-	{	// we can't just remove (self) here, because this is a touch function
+	{
+		// we can't just remove (self) here, because this is a touch function
 		// called while looping through area links...
 		ent->touch = NULL;
 		ent->nextthink = level.time + FRAMETIME;
@@ -64,23 +81,35 @@ void multi_trigger (edict_t *ent)
 }
 
 void Use_Multi (edict_t *ent, edict_t *other, edict_t *activator)
-{
+{	
+	if (!ent || !activator)
+	{
+		return;
+	}
+
 	ent->activator = activator;
 	multi_trigger (ent);
 }
 
 void Touch_Multi (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
+	if (!self || !other)
+	{
+		return;
+	}
+
 	if(other->client)
 	{
 		if (self->spawnflags & 2)
 			return;
 	}
+
 	else if (other->svflags & SVF_MONSTER)
 	{
 		if (!(self->spawnflags & 1))
 			return;
 	}
+
 	else
 		return;
 
@@ -89,6 +118,7 @@ void Touch_Multi (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *su
 		vec3_t	forward;
 
 		AngleVectors(other->s.angles, forward, NULL, NULL);
+
 		if (_DotProduct(forward, self->movedir) < 0)
 			return;
 	}
@@ -110,6 +140,11 @@ set "message" to text string
 */
 void trigger_enable (edict_t *self, edict_t *other, edict_t *activator)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	self->solid = SOLID_TRIGGER;
 	self->use = Use_Multi;
 	gi.linkentity (self);
@@ -117,15 +152,23 @@ void trigger_enable (edict_t *self, edict_t *other, edict_t *activator)
 
 void SP_trigger_multiple (edict_t *ent)
 {
+	if (!ent)
+	{
+		return;
+	}
+
 	if (ent->sounds == 1)
 		ent->noise_index = gi.soundindex ("misc/secret.wav");
+
 	else if (ent->sounds == 2)
 		ent->noise_index = gi.soundindex ("misc/talk.wav");
+
 	else if (ent->sounds == 3)
 		ent->noise_index = gi.soundindex ("misc/trigger1.wav");
 	
 	if (!ent->wait)
 		ent->wait = 0.2;
+
 	ent->touch = Touch_Multi;
 	ent->movetype = MOVETYPE_NONE;
 	ent->svflags |= SVF_NOCLIENT;
@@ -136,6 +179,7 @@ void SP_trigger_multiple (edict_t *ent)
 		ent->solid = SOLID_NOT;
 		ent->use = trigger_enable;
 	}
+
 	else
 	{
 		ent->solid = SOLID_TRIGGER;
@@ -162,11 +206,16 @@ sounds
  3)	large switch
  4)
 
-"message"	string to be displayed when triggered
+"message" string to be displayed when triggered
 */
 
 void SP_trigger_once(edict_t *ent)
 {
+	if (!ent)
+	{
+		return;
+	}
+
 	// make old maps work because I messed up on flag assignments here
 	// triggered was on bit 1 when it should have been on bit 4
 	if (ent->spawnflags & 1)
@@ -188,11 +237,21 @@ This fixed size trigger cannot be touched, it can only be fired by other events.
 */
 void trigger_relay_use (edict_t *self, edict_t *other, edict_t *activator)
 {
+	if (!self || !activator)
+	{
+		return;
+	}
+
 	G_UseTargets (self, activator);
 }
 
 void SP_trigger_relay (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	self->use = trigger_relay_use;
 }
 
@@ -211,18 +270,26 @@ Use "item" to specify the required key, for example "key_data_cd"
 */
 void trigger_key_use (edict_t *self, edict_t *other, edict_t *activator)
 {
-	int			index;
+	int	index;
+
+	if (!self || !activator)
+	{
+		return;
+	}
 
 	if (!self->item)
 		return;
+
 	if (!activator->client)
 		return;
 
 	index = ITEM_INDEX(self->item);
+
 	if (!activator->client->pers.inventory[index])
 	{
 		if (level.time < self->touch_debounce_time)
 			return;
+
 		self->touch_debounce_time = level.time + 5.0;
 		gi.centerprintf (activator, "You need the %s", self->item->pickup_name);
 		gi.sound (activator, CHAN_AUTO, gi.soundindex ("misc/keytry.wav"), 1, ATTN_NORM, 0);
@@ -230,9 +297,10 @@ void trigger_key_use (edict_t *self, edict_t *other, edict_t *activator)
 	}
 
 	gi.sound (activator, CHAN_AUTO, gi.soundindex ("misc/keyuse.wav"), 1, ATTN_NORM, 0);
+
 	if (coop->value)
 	{
-		int		player;
+		int	player;
 		edict_t	*ent;
 
 		if (strcmp(self->item->classname, "key_power_cube") == 0)
@@ -240,15 +308,21 @@ void trigger_key_use (edict_t *self, edict_t *other, edict_t *activator)
 			int	cube;
 
 			for (cube = 0; cube < 8; cube++)
+			{
 				if (activator->client->pers.power_cubes & (1 << cube))
 					break;
+			}
+
 			for (player = 1; player <= game.maxclients; player++)
 			{
 				ent = &g_edicts[player];
+
 				if (!ent->inuse)
 					continue;
+
 				if (!ent->client)
 					continue;
+
 				if (ent->client->pers.power_cubes & (1 << cube))
 				{
 					ent->client->pers.inventory[index]--;
@@ -256,19 +330,24 @@ void trigger_key_use (edict_t *self, edict_t *other, edict_t *activator)
 				}
 			}
 		}
+
 		else
 		{
 			for (player = 1; player <= game.maxclients; player++)
 			{
 				ent = &g_edicts[player];
+
 				if (!ent->inuse)
 					continue;
+
 				if (!ent->client)
 					continue;
+
 				ent->client->pers.inventory[index] = 0;
 			}
 		}
 	}
+
 	else
 	{
 		activator->client->pers.inventory[index]--;
@@ -281,11 +360,17 @@ void trigger_key_use (edict_t *self, edict_t *other, edict_t *activator)
 
 void SP_trigger_key (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	if (!st.item)
 	{
 		gi.dprintf("no key item for trigger_key at %s\n", vtos(self->s.origin));
 		return;
 	}
+
 	self->item = FindItemByClassname (st.item);
 
 	if (!self->item)
@@ -325,6 +410,11 @@ After the counter has been triggered "count" times (default 2), it will fire all
 
 void trigger_counter_use(edict_t *self, edict_t *other, edict_t *activator)
 {
+	if (!self || !activator)
+	{
+		return;
+	}
+
 	if (self->count == 0)
 		return;
 	
@@ -337,6 +427,7 @@ void trigger_counter_use(edict_t *self, edict_t *other, edict_t *activator)
 			gi.centerprintf(activator, "%i more to go...", self->count);
 			gi.sound (activator, CHAN_AUTO, gi.soundindex ("misc/talk1.wav"), 1, ATTN_NORM, 0);
 		}
+
 		return;
 	}
 	
@@ -345,13 +436,20 @@ void trigger_counter_use(edict_t *self, edict_t *other, edict_t *activator)
 		gi.centerprintf(activator, "Sequence completed!");
 		gi.sound (activator, CHAN_AUTO, gi.soundindex ("misc/talk1.wav"), 1, ATTN_NORM, 0);
 	}
+
 	self->activator = activator;
 	multi_trigger (self);
 }
 
 void SP_trigger_counter (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	self->wait = -1;
+
 	if (!self->count)
 		self->count = 2;
 
@@ -372,9 +470,15 @@ This trigger will always fire.  It is activated by the world.
 */
 void SP_trigger_always (edict_t *ent)
 {
+	if (!ent)
+	{
+		return;
+	}
+
 	// we must have some delay to make sure our use targets are present
 	if (ent->delay < 0.2)
 		ent->delay = 0.2;
+
 	G_UseTargets(ent, ent);
 }
 
@@ -387,16 +491,22 @@ trigger_push
 ==============================================================================
 */
 
-#define PUSH_ONCE		1
+#define PUSH_ONCE	1
 
 static int windsound;
 
 void trigger_push_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
+	if (!self || !other)
+	{
+		return;
+	}
+
 	if (strcmp(other->classname, "grenade") == 0)
 	{
 		VectorScale (self->movedir, self->speed * 10, other->velocity);
 	}
+
 	else if (other->health > 0)
 	{
 		VectorScale (self->movedir, self->speed * 10, other->velocity);
@@ -405,6 +515,7 @@ void trigger_push_touch (edict_t *self, edict_t *other, cplane_t *plane, csurfac
 		{
 			// don't take falling damage immediately from this
 			VectorCopy (other->velocity, other->client->oldvelocity);
+
 			if (other->fly_sound_debounce_time < level.time)
 			{
 				other->fly_sound_debounce_time = level.time + 1.5;
@@ -412,6 +523,7 @@ void trigger_push_touch (edict_t *self, edict_t *other, cplane_t *plane, csurfac
 			}
 		}
 	}
+
 	if (self->spawnflags & PUSH_ONCE)
 		G_FreeEdict (self);
 }
@@ -423,11 +535,18 @@ Pushes the player
 */
 void SP_trigger_push (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	InitTrigger (self);
 	windsound = gi.soundindex ("misc/windfly.wav");
 	self->touch = trigger_push_touch;
+
 	if (!self->speed)
 		self->speed = 1000;
+
 	gi.linkentity (self);
 }
 
@@ -445,19 +564,26 @@ Any entity that touches this will be hurt.
 
 It does dmg points of damage each server frame
 
-SILENT			supresses playing the sound
-SLOW			changes the damage rate to once per second
+SILENT		supresses playing the sound
+SLOW		changes the damage rate to once per second
 NO_PROTECTION	*nothing* stops the damage
 
-"dmg"			default 5 (whole numbers only)
+"dmg"		default 5 (whole numbers only)
 
 */
-void hurt_use (edict_t *self, edict_t *other, edict_t *activator)
+void hurt_use (edict_t *self, edict_t *other, edict_t *activator) // used ? - Cowcat
 {
+	if (!self)
+	{
+		return;
+	}
+
 	if (self->solid == SOLID_NOT)
 		self->solid = SOLID_TRIGGER;
+
 	else
 		self->solid = SOLID_NOT;
+
 	gi.linkentity (self);
 
 	if (!(self->spawnflags & 2))
@@ -467,7 +593,12 @@ void hurt_use (edict_t *self, edict_t *other, edict_t *activator)
 
 void hurt_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
-	int		dflags;
+	int	dflags;
+
+	if (!self || !other)
+	{
+		return;
+	}
 
 	if (!other->takedamage)
 		return;
@@ -490,11 +621,17 @@ void hurt_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *sur
 		dflags = DAMAGE_NO_PROTECTION;
 	else
 		dflags = 0;
+
 	T_Damage (other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, self->dmg, dflags, MOD_TRIGGER_HURT);
 }
 
 void SP_trigger_hurt (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	InitTrigger (self);
 
 	self->noise_index = gi.soundindex ("world/electro.wav");
@@ -531,11 +668,21 @@ gravity for the level.
 
 void trigger_gravity_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
+	if (!self || !other)
+	{
+		return;
+	}
+
 	other->gravity = self->gravity;
 }
 
 void SP_trigger_gravity (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	if (st.gravity == 0)
 	{
 		gi.dprintf("trigger_gravity without gravity set at %s\n", vtos(self->s.origin));
@@ -565,14 +712,21 @@ Walking monsters that touch this will jump in the direction of the trigger's ang
 
 void trigger_monsterjump_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
+	if (!self || !other)
+	{
+		return;
+	}
+
 	if (other->flags & (FL_FLY | FL_SWIM) )
 		return;
+
 	if (other->svflags & SVF_DEADMONSTER)
 		return;
+
 	if ( !(other->svflags & SVF_MONSTER))
 		return;
 
-// set XY even if not on ground, so the jump will clear lips
+	// set XY even if not on ground, so the jump will clear lips
 	other->velocity[0] = self->movedir[0] * self->speed;
 	other->velocity[1] = self->movedir[1] * self->speed;
 	
@@ -585,14 +739,23 @@ void trigger_monsterjump_touch (edict_t *self, edict_t *other, cplane_t *plane, 
 
 void SP_trigger_monsterjump (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	if (!self->speed)
 		self->speed = 200;
+
 	if (!st.height)
 		st.height = 200;
+
 	if (self->s.angles[YAW] == 0)
 		self->s.angles[YAW] = 360;
+
 	InitTrigger (self);
 	self->touch = trigger_monsterjump_touch;
 	self->movedir[2] = st.height;
 }
+
 

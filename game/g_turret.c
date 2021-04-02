@@ -26,10 +26,13 @@ void AnglesNormalize(vec3_t vec)
 {
 	while(vec[0] > 360)
 		vec[0] -= 360;
+
 	while(vec[0] < 0)
 		vec[0] += 360;
+
 	while(vec[1] > 360)
 		vec[1] -= 360;
+
 	while(vec[1] < 0)
 		vec[1] += 360;
 }
@@ -37,10 +40,12 @@ void AnglesNormalize(vec3_t vec)
 float SnapToEights(float x)
 {
 	x *= 8.0;
+
 	if (x > 0.0)
 		x += 0.5;
 	else
 		x -= 0.5;
+
 	return 0.125 * (int)x;
 }
 
@@ -49,12 +54,18 @@ void turret_blocked(edict_t *self, edict_t *other)
 {
 	edict_t	*attacker;
 
+	if (!self || !other)
+	{
+		return;
+	}
+
 	if (other->takedamage)
 	{
 		if (self->teammaster->owner)
 			attacker = self->teammaster->owner;
 		else
 			attacker = self->teammaster;
+
 		T_Damage (other, self, attacker, vec3_origin, other->s.origin, vec3_origin, self->teammaster->dmg, 10, 0, MOD_CRUSH);
 	}
 }
@@ -79,8 +90,13 @@ void turret_breach_fire (edict_t *self)
 {
 	vec3_t	f, r, u;
 	vec3_t	start;
-	int		damage;
-	int		speed;
+	int	damage;
+	int	speed;
+
+	if (!self)
+	{
+		return;
+	}
 
 	AngleVectors (self->s.angles, f, r, u);
 	VectorMA (self->s.origin, self->move_origin[0], f, start);
@@ -99,6 +115,11 @@ void turret_breach_think (edict_t *self)
 	vec3_t	current_angles;
 	vec3_t	delta;
 
+	if (!self)
+	{
+		return;
+	}
+
 	VectorCopy (self->s.angles, current_angles);
 	AnglesNormalize(current_angles);
 
@@ -109,6 +130,7 @@ void turret_breach_think (edict_t *self)
 	// clamp angles to mins & maxs
 	if (self->move_angles[PITCH] > self->pos1[PITCH])
 		self->move_angles[PITCH] = self->pos1[PITCH];
+
 	else if (self->move_angles[PITCH] < self->pos2[PITCH])
 		self->move_angles[PITCH] = self->pos2[PITCH];
 
@@ -117,38 +139,53 @@ void turret_breach_think (edict_t *self)
 		float	dmin, dmax;
 
 		dmin = fabs(self->pos1[YAW] - self->move_angles[YAW]);
+
 		if (dmin < -180)
 			dmin += 360;
+
 		else if (dmin > 180)
 			dmin -= 360;
+
 		dmax = fabs(self->pos2[YAW] - self->move_angles[YAW]);
+
 		if (dmax < -180)
 			dmax += 360;
+
 		else if (dmax > 180)
 			dmax -= 360;
+
 		if (fabs(dmin) < fabs(dmax))
 			self->move_angles[YAW] = self->pos1[YAW];
+
 		else
 			self->move_angles[YAW] = self->pos2[YAW];
 	}
 
 	VectorSubtract (self->move_angles, current_angles, delta);
+
 	if (delta[0] < -180)
 		delta[0] += 360;
+
 	else if (delta[0] > 180)
 		delta[0] -= 360;
+
 	if (delta[1] < -180)
 		delta[1] += 360;
+
 	else if (delta[1] > 180)
 		delta[1] -= 360;
+
 	delta[2] = 0;
 
 	if (delta[0] > self->speed * FRAMETIME)
 		delta[0] = self->speed * FRAMETIME;
+
 	if (delta[0] < -1 * self->speed * FRAMETIME)
 		delta[0] = -1 * self->speed * FRAMETIME;
+
 	if (delta[1] > self->speed * FRAMETIME)
 		delta[1] = self->speed * FRAMETIME;
+
 	if (delta[1] < -1 * self->speed * FRAMETIME)
 		delta[1] = -1 * self->speed * FRAMETIME;
 
@@ -200,11 +237,17 @@ void turret_breach_think (edict_t *self)
 
 void turret_breach_finish_init (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	// get and save info for muzzle location
 	if (!self->target)
 	{
 		gi.dprintf("%s at %s needs a target\n", self->classname, vtos(self->s.origin));
 	}
+
 	else
 	{
 		self->target_ent = G_PickTarget (self->target);
@@ -219,19 +262,27 @@ void turret_breach_finish_init (edict_t *self)
 
 void SP_turret_breach (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	self->solid = SOLID_BSP;
 	self->movetype = MOVETYPE_PUSH;
 	gi.setmodel (self, self->model);
 
 	if (!self->speed)
 		self->speed = 50;
+
 	if (!self->dmg)
 		self->dmg = 10;
 
 	if (!st.minpitch)
 		st.minpitch = -30;
+
 	if (!st.maxpitch)
 		st.maxpitch = 30;
+
 	if (!st.maxyaw)
 		st.maxyaw = 360;
 
@@ -258,6 +309,11 @@ MUST be teamed with a turret_breach.
 
 void SP_turret_base (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	self->solid = SOLID_BSP;
 	self->movetype = MOVETYPE_PUSH;
 	gi.setmodel (self, self->model);
@@ -279,12 +335,18 @@ void turret_driver_die (edict_t *self, edict_t *inflictor, edict_t *attacker, in
 {
 	edict_t	*ent;
 
+	if (!self || !inflictor || !attacker)
+	{
+		return;
+	}
+
 	// level the gun
 	self->target_ent->move_angles[0] = 0;
 
 	// remove the driver from the end of them team chain
 	for (ent = self->target_ent->teammaster; ent->teamchain != self; ent = ent->teamchain)
 		;
+
 	ent->teamchain = NULL;
 	self->teammaster = NULL;
 	self->flags &= ~FL_TEAMSLAVE;
@@ -303,6 +365,11 @@ void turret_driver_think (edict_t *self)
 	vec3_t	dir;
 	float	reaction_time;
 
+	if (!self)
+	{
+		return;
+	}
+
 	self->nextthink = level.time + FRAMETIME;
 
 	if (self->enemy && (!self->enemy->inuse || self->enemy->health <= 0))
@@ -312,9 +379,11 @@ void turret_driver_think (edict_t *self)
 	{
 		if (!FindTarget (self))
 			return;
+
 		self->monsterinfo.trail_time = level.time;
 		self->monsterinfo.aiflags &= ~AI_LOST_SIGHT;
 	}
+
 	else
 	{
 		if (visible (self, self->enemy))
@@ -325,6 +394,7 @@ void turret_driver_think (edict_t *self)
 				self->monsterinfo.aiflags &= ~AI_LOST_SIGHT;
 			}
 		}
+
 		else
 		{
 			self->monsterinfo.aiflags |= AI_LOST_SIGHT;
@@ -343,6 +413,7 @@ void turret_driver_think (edict_t *self)
 		return;
 
 	reaction_time = (3 - skill->value) * 1.0;
+
 	if ((level.time - self->monsterinfo.trail_time) < reaction_time)
 		return;
 
@@ -355,6 +426,11 @@ void turret_driver_link (edict_t *self)
 {
 	vec3_t	vec;
 	edict_t	*ent;
+
+	if (!self)
+	{
+		return;
+	}
 
 	self->think = turret_driver_think;
 	self->nextthink = level.time + FRAMETIME;
@@ -379,6 +455,7 @@ void turret_driver_link (edict_t *self)
 	// add the driver to the end of them team chain
 	for (ent = self->target_ent->teammaster; ent->teamchain; ent = ent->teamchain)
 		;
+
 	ent->teamchain = self;
 	self->teammaster = self->target_ent->teammaster;
 	self->flags |= FL_TEAMSLAVE;
@@ -386,6 +463,11 @@ void turret_driver_link (edict_t *self)
 
 void SP_turret_driver (edict_t *self)
 {
+	if (!self)
+	{
+		return;
+	}
+
 	if (deathmatch->value)
 	{
 		G_FreeEdict (self);
@@ -421,6 +503,7 @@ void SP_turret_driver (edict_t *self)
 	if (st.item)
 	{
 		self->item = FindItemByClassname (st.item);
+
 		if (!self->item)
 			gi.dprintf("%s at %s has bad item: %s\n", self->classname, vtos(self->s.origin), st.item);
 	}
@@ -430,3 +513,4 @@ void SP_turret_driver (edict_t *self)
 
 	gi.linkentity (self);
 }
+

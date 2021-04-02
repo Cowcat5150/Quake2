@@ -35,6 +35,11 @@ qboolean CanDamage (edict_t *targ, edict_t *inflictor)
 	vec3_t	dest;
 	trace_t trace;
 
+	if(!targ || !inflictor)
+	{
+		return false;
+	}
+
 	// bmodels need special checking because their origin is 0,0,0
 	if (targ->movetype == MOVETYPE_PUSH)
 	{
@@ -88,7 +93,6 @@ qboolean CanDamage (edict_t *targ, edict_t *inflictor)
 	if (trace.fraction == 1.0)
 		return true;
 
-
 	return false;
 }
 
@@ -101,6 +105,11 @@ Killed
 
 void Killed (edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
 {
+	if(!targ || !inflictor || !attacker)
+	{
+		return;
+	}
+
 	if (targ->health < -999)
 		targ->health = -999;
 
@@ -108,8 +117,6 @@ void Killed (edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, v
 
 	if ((targ->svflags & SVF_MONSTER) && (targ->deadflag != DEAD_DEAD))
 	{
-		// targ->svflags |= SVF_DEADMONSTER;	// now treat as a different content type
-
 		if (!(targ->monsterinfo.aiflags & AI_GOOD_GUY))
 		{
 			level.killed_monsters++;
@@ -118,8 +125,7 @@ void Killed (edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, v
 				attacker->client->resp.score++;
 
 			// medics won't heal monsters that they kill themselves
-			//if (strcmp(attacker->classname, "monster_medic") == 0)
-			if (attacker && attacker->classname && strcmp(attacker->classname, "monster_medic") == 0) // yamagi
+			if (attacker && attacker->classname && strcmp(attacker->classname, "monster_medic") == 0)
 				targ->owner = attacker;
 		}
 	}
@@ -150,11 +156,10 @@ SpawnDamage
 void SpawnDamage (int type, vec3_t origin, vec3_t normal, int damage)
 {
 	if (damage > 255)
-		damage = 255;
+		damage = 255; // needed ? - Cowcat
 
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (type);
-	// gi.WriteByte (damage);
 	gi.WritePosition (origin);
 	gi.WriteDir (normal);
 	gi.multicast (origin, MULTICAST_PVS);
@@ -196,6 +201,11 @@ int CheckPowerArmor (edict_t *ent, vec3_t point, vec3_t normal, int damage, int 
 	int		pa_te_type;
 	int		power;
 	int		power_used;
+
+	if(!ent)
+	{
+		return 0;
+	}
 
 	if (!damage)
 		return 0;
@@ -288,6 +298,11 @@ int CheckArmor (edict_t *ent, vec3_t point, vec3_t normal, int damage, int te_sp
 	int		index;
 	gitem_t		*armor;
 
+	if(!ent)
+	{
+		return 0;
+	}
+
 	if (!damage)
 		return 0;
 
@@ -326,6 +341,14 @@ int CheckArmor (edict_t *ent, vec3_t point, vec3_t normal, int damage, int te_sp
 
 void M_ReactToDamage (edict_t *targ, edict_t *attacker)
 {
+	if(!targ || !attacker)
+	{
+		return;
+	}
+
+	if (targ->health <= 0)
+		return;
+
 	if (!(attacker->client) && !(attacker->svflags & SVF_MONSTER))
 		return;
 
@@ -427,6 +450,11 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 	int		asave;
 	int		psave;
 	int		te_sparks;
+
+	if(!targ || !inflictor || !attacker)
+	{
+		return;
+	}
 
 	if (!targ->takedamage)
 		return;
@@ -609,6 +637,11 @@ void T_RadiusDamage (edict_t *inflictor, edict_t *attacker, float damage, edict_
 	edict_t *ent = NULL;
 	vec3_t	v;
 	vec3_t	dir;
+
+	if(!inflictor || !attacker)
+	{
+		return;
+	}
 
 	while ((ent = findradius(ent, inflictor->s.origin, radius)) != NULL)
 	{
