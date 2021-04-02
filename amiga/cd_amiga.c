@@ -1,18 +1,10 @@
 #include "../client/client.h"
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include "twfsound_cd.h"
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined (WARPUP)
 #pragma pack(pop)
-#endif
 
 static qboolean cdValid = false;
 static qboolean cdPlaying = false;

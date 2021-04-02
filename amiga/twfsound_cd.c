@@ -82,11 +82,7 @@
  * PowerUp support by Frank Wille <frank@phoenix.owl.de> (phx)
  */
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <exec/exec.h>
 #include <proto/exec.h>
@@ -101,13 +97,10 @@
 #include <powerpc/powerpc.h>
 #include <proto/powerpc.h>
 #endif
+#endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined(WARPUP)
 #pragma pack(pop)
-#endif
-#endif
+
 
 #include "twfsound_cd.h"
 #include <stdio.h>

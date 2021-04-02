@@ -3,21 +3,14 @@
 
 #ifdef __DLL_LIB_BUILD
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
-#pragma pack(2)
-#endif
+#pragma pack(push,2)
 
 #include <exec/exec.h>
 
-#ifdef __VBCC__
-#pragma default align
-#elif defined (WARPUP)
-#pragma pack()
-#endif
+#pragma pack(pop)
 
 #endif
+
 
 /************************************************************
  * External structures

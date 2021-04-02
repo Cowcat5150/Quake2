@@ -7,11 +7,7 @@
 #include "../client/keys.h"
 #endif
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <exec/exec.h>
 #include <proto/exec.h>
@@ -21,11 +17,7 @@
 #include <graphics/gfx.h>
 #include <proto/graphics.h>
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined(WARPUP)
 #pragma pack(pop)
-#endif
 
 #include <sys/stat.h>
 #include "dll.h"
@@ -44,7 +36,9 @@ extern int MapKey();
 uid_t saved_euid;
 qboolean stdin_active = true;
 
+#ifdef __VBCC__
 unsigned long __stack = 0x100000; // auto stack Cowcat
+#endif
 
 
 // =======================================================================
@@ -96,6 +90,7 @@ void Sys_Printf (char *fmt, ...)
 	}
 }
 
+
 struct IntuitionBase *IntuitionBase;
 //struct GfxBase *GfxBase = 0;
 struct Library *SocketBase; // = 0;
@@ -108,7 +103,7 @@ void Sys_Leave(void)
 	if (SocketBase)		CloseLibrary(SocketBase);
 	if (KeymapBase)		CloseLibrary(KeymapBase);
 
-	IntuitionBase	= NULL;
+	//IntuitionBase	= NULL;
 	//GfxBase	= NULL;
 	SocketBase	= NULL;
 	KeymapBase	= NULL;
@@ -453,7 +448,7 @@ int main (int argc, char **argv)
 	if (id2[1]!=65) invalid=1;
 	if (invalid) exit(0);
 #endif
-    
+
 	Qcommon_Init(argc, argv);
 
 	nostdout = Cvar_Get("nostdout", "1", CVAR_ARCHIVE);

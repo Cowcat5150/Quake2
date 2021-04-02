@@ -11,7 +11,7 @@
 
 // Cowcat  //Thanks Phx!
 
-#ifdef WOS
+#if defined WOS && defined (__VBCC__)
 #define DLLFUNC __saveds
 #else
 #define DLLFUNC

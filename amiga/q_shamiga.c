@@ -16,11 +16,7 @@
 #include <fnmatch.h>
 //#include <sys/time.h> // Cowcat
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <utility/tagitem.h>
 #include <exec/exec.h>
@@ -44,11 +40,7 @@
 
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined(WARPUP)
 #pragma pack(pop)
-#endif
 
 //===============================================================================
 

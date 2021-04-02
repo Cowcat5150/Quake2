@@ -31,11 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 **
 */
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <exec/exec.h>
 #include <exec/memory.h>
@@ -68,11 +64,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined (WARPUP)
 #pragma pack(pop)
-#endif
 
 #include "../ref_gl/gl_local.h"
 #include "dll.h"
@@ -601,35 +593,16 @@ DLLFUNC void GLimp_AppActivate( qboolean active )
 
 DLLFUNC struct Window *GetWindowHandle(void)
 {
-	return mglGetWindowHandle();
+	//return mglGetWindowHandle();
 	return g_pWindow;
 }
 
-#if 0
-DLLFUNC void* dllFindResource(int id, char *pType)
-{
-	return NULL;
-}
-
-DLLFUNC void* dllLoadResource(void *pHandle)
-{
-	return NULL;
-}
-
-DLLFUNC void dllFreeResource(void *pHandle)
-{
-	return;
-}
-#endif
 
 extern refexport_t GetRefAPI (refimport_t rimp );
 
 dll_tExportSymbol DLL_ExportSymbols[] =
 {
-	//{(void *)dllFindResource,"dllFindResource"},
-	//{(void *)dllLoadResource,"dllLoadResource"},
-	//{(void *)dllFreeResource,"dllFreeResource"},
-	{(void *)GetRefAPI,"GetRefAPI"},
+	{(void *)GetRefAPI, "GetRefAPI"},
 	{(void *)GetWindowHandle, "GetWindowHandle"},
 	{0, 0}
 };
@@ -648,6 +621,3 @@ void DLL_DeInit()
 {
 }
 
-#ifdef __GNUC__
-extern int main(int, char **); // new Cowcat
-#endif

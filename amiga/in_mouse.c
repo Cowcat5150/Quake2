@@ -1,11 +1,7 @@
 #include "../client/client.h"
 #include "in.h"
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <intuition/intuition.h>
 #include <proto/intuition.h>
@@ -26,11 +22,7 @@
 #endif
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined(WARPUP)
 #pragma pack(pop)
-#endif
 
 cvar_t	    *m_filter;
 cvar_t	    *in_mouse;
@@ -43,10 +35,10 @@ int	    old_mouse_x, old_mouse_y;
 qboolean    mouseactive;
 qboolean    mouseinitialized;
 
-// Cowcat windowmode MouseHandler stuff 
+//// Cowcat windowmode MouseHandler stuff 
 
-static struct MsgPort	*InputPort=NULL;
-static struct IOStdReq	*InputIO=NULL;
+static struct MsgPort	*InputPort = NULL;
+static struct IOStdReq	*InputIO = NULL;
 static struct Interrupt InputHandler;
 
 extern cvar_t *vid_fullscreen;
@@ -54,11 +46,10 @@ extern cvar_t *vid_fullscreen;
 /*68k code */
 extern void *InputCode(void);
 
-BOOL mhandler=FALSE;
-
-//unsigned short *HandlerPointer = 0;
+BOOL mhandler = FALSE;
 
 extern struct Window *win;
+
 ////
 
 void IN_MLookDown (void)
@@ -97,33 +88,37 @@ void IN_DeactivateMouse (void)
 {
 }
 
+////
+
 void MouseHandlerOff (void)
 {	 
 	if (mhandler)
 	{
-		InputIO->io_Data=(void *)&InputHandler;
-		InputIO->io_Command=IND_REMHANDLER;
+		InputIO->io_Data = (void *)&InputHandler;
+		InputIO->io_Command = IND_REMHANDLER;
 		DoIO((struct IORequest *)InputIO);
 
 		CloseDevice((struct IORequest *)InputIO);		
 		DeleteIORequest((struct IORequest *)InputIO);
 		DeleteMsgPort(InputPort);
 	
-		mhandler = FALSE; 
+		mhandler = FALSE;
+
 		//ModifyIDCMP(win, IDCMP_RAWKEY|IDCMP_MOUSEBUTTONS);
-		win->IDCMPFlags |= IDCMP_RAWKEY|IDCMP_MOUSEBUTTONS;
+		if(win)
+			win->IDCMPFlags |= IDCMP_RAWKEY|IDCMP_MOUSEBUTTONS;
 	}
 }
 
 void MouseHandler (void)
 {
-	if (!vid_fullscreen->value && !mhandler)
+	if (!vid_fullscreen->value && !mhandler && in_mouse->value)
 	{
-		if ( InputPort = CreateMsgPort() )
+		if ( ( InputPort = CreateMsgPort() ) )
 		{
-			if (InputIO = (struct IOStdReq *) CreateIORequest(InputPort, sizeof(struct IOStdReq)))
+			if ( ( InputIO = (struct IOStdReq *) CreateIORequest(InputPort, sizeof(struct IOStdReq)) ) )
 			{
-				OpenDevice("input.device",0,(struct IORequest *)InputIO, 0);
+				OpenDevice("input.device", 0,(struct IORequest *)InputIO, 0);
 
 				InputHandler.is_Node.ln_Type = NT_INTERRUPT;
 				InputHandler.is_Node.ln_Pri = 90;
@@ -135,12 +130,16 @@ void MouseHandler (void)
 				DoIO((struct IORequest *)InputIO);
 	  
 				mhandler = TRUE;
+
 				//ModifyIDCMP(win, IDCMP_RAWKEY|IDCMP_MOUSEMOVE|IDCMP_MOUSEBUTTONS|IDCMP_DELTAMOVE);
-				win->IDCMPFlags |= IDCMP_RAWKEY|IDCMP_MOUSEMOVE|IDCMP_MOUSEBUTTONS|IDCMP_DELTAMOVE;
+				if(win)
+					win->IDCMPFlags |= IDCMP_RAWKEY|IDCMP_MOUSEMOVE|IDCMP_MOUSEBUTTONS|IDCMP_DELTAMOVE;
 			}
 		}
 	}
 }
+
+////
 
 /*
 ===========

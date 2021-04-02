@@ -32,11 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "../ref_soft/r_local.h"
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <intuition/intuition.h>
 #include <intuition/screens.h>
@@ -58,11 +54,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined (WARPUP)
 #pragma pack(pop)
-#endif
 
 #include "dll.h"
 
@@ -89,24 +81,24 @@ unsigned char 	first_palette[4*256];
 qboolean SWimp_OpenLibs(void)
 {    
     	if (libs_init)
-		return true; 
-    
-    	libs_init = true;
+		return true;
+
+	IntuitionBase = (struct IntuitionBase *)OpenLibrary("intuition.library", 0L);
+
+    	if (!IntuitionBase)
+		return false;
+
+	GfxBase = (struct GfxBase *)OpenLibrary("graphics.library", 0L);
+
+    	if (!GfxBase)
+		return false; 
 
     	CyberGfxBase = OpenLibrary("cybergraphics.library", 0L);
 
     	if (!CyberGfxBase)
 		return false;
 
-    	IntuitionBase = (struct IntuitionBase *)OpenLibrary("intuition.library", 0L);
-
-    	if (!IntuitionBase)
-		return false; 
-
-    	GfxBase = (struct GfxBase *)OpenLibrary("graphics.library", 0L);
-
-    	if (!GfxBase)
-		return false; 
+	libs_init = true;
 
     	return true;
 }
@@ -115,16 +107,17 @@ void SWimp_CloseLibs(void)
 {    
 	if (libs_init == false) return;
 	if (CyberGfxBase) CloseLibrary(CyberGfxBase);
-	if (IntuitionBase) CloseLibrary((struct Library *)IntuitionBase);
 	if (GfxBase) CloseLibrary((struct Library *)GfxBase);
-
+	if (IntuitionBase) CloseLibrary((struct Library *)IntuitionBase);
+	
 	CyberGfxBase = NULL;
-	IntuitionBase = NULL;
 	GfxBase = NULL;
+	IntuitionBase = NULL;
+	
 	libs_init = false;
 }
 
-static void *g_pCursor = 0;
+static void *g_pCursor = NULL;
 
 DLLFUNC void SWimp_EmptyCursor(void)
 {	
@@ -141,7 +134,6 @@ DLLFUNC void SWimp_EmptyCursor(void)
 		#endif
 		
 		SetPointer(g_pWindow, g_pCursor, 1, 16, 0, 0);
-		
 	}
 }
 
@@ -161,7 +153,7 @@ DLLFUNC void SWimp_EnableCursor(void)
 
 		#endif	  
 
-		g_pCursor = 0;
+		g_pCursor = NULL;
 	}
 }
 
@@ -175,7 +167,7 @@ ULONG GetMode(int w, int h);
 
 qboolean VID_CreateWindow( int width, int height, qboolean fullscreen)
 {
-	cvar_t	*vid_xpos, *vid_ypos, *vid_fullscreen, *sw_pubscreen, *sw_keepcursor;
+	cvar_t	*vid_xpos, *vid_ypos, *vid_fullscreen, *sw_pubscreen; //, *sw_keepcursor;
 	ULONG	wflgs;
 	Tag	screentag;
 	Tag	titletag;
@@ -187,7 +179,7 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen)
 	vid_ypos = ri.Cvar_Get ("vid_ypos", "0", 0);
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE );
 	sw_pubscreen   = ri.Cvar_Get("sw_pubscreen", "", CVAR_ARCHIVE);
-	sw_keepcursor  = ri.Cvar_Get("sw_keepcursor", "0", CVAR_ARCHIVE);
+	//sw_keepcursor  = ri.Cvar_Get("sw_keepcursor", "0", CVAR_ARCHIVE);
 
 	if ( vid_fullscreen->value || fullscreen)
 	{
@@ -356,19 +348,7 @@ int SWimp_Init( void *hInstance, void *wndProc )
 {   
 	MAYBE_OPEN_LIBS;
 
-	#if 0 // Cowcat
-
-	if (!g_pCursor)
-
-	#ifdef __PPC__	  
-		g_pCursor = AllocVecPPC(24, MEMF_CLEAR|MEMF_CHIP,0);
-	#else
-		g_pCursor = AllocVec(24, MEMF_CLEAR|MEMF_CHIP);
-	#endif
-
-	#endif ///
- 
-	SWimp_EnableCursor();  // Cowcat
+	//SWimp_EnableCursor();  // Cowcat
 
 	return true;
 }
@@ -416,7 +396,7 @@ DLLFUNC void SWimp_EndFrame(void)
 
 	bm = g_pWindow->RPort->BitMap;
 
-	//if (GetCyberMapAttr(bm, CYBRMATTR_ISCYBERGFX))
+	if (GetCyberMapAttr(bm, CYBRMATTR_ISCYBERGFX))
 	{
 		#if 1
 
@@ -503,9 +483,9 @@ DLLFUNC void SWimp_EndFrame(void)
 		UnLockBitMap(handle);
 	}
 
-	//else
+	else
 	{
-		//ri.Con_Printf(PRINT_ALL, "SWimp_EndFrame: No CyberGraphX-Compatible bitmap\n");
+		ri.Con_Printf(PRINT_ALL, "SWimp_EndFrame: No CyberGraphX-Compatible bitmap\n");
 	}
 	
 }
@@ -713,6 +693,8 @@ void SWimp_Shutdown( void )
 {
 	ri.Con_Printf( PRINT_ALL, "Shutting down SW imp\n" );
 
+	SWimp_EnableCursor();
+
 	if (g_pWindow)
 		CloseWindow(g_pWindow);
 
@@ -731,18 +713,7 @@ void SWimp_Shutdown( void )
 
 	screen_public = false;
 
-	#if 0 // Cowcat
-    
-	#ifdef __PPC__	  
-	if (g_pCursor) FreeVecPPC(g_pCursor);
-	#else
-	if (g_pCursor) FreeVec(g_pCursor);
-	#endif	  
-	g_pCursor = 0;
-
-	#endif ////
-
-	SWimp_EnableCursor();
+	SWimp_CloseLibs();
 }
 
 /*
@@ -760,30 +731,10 @@ DLLFUNC struct Window *GetWindowHandle(void)
 
 //===============================================================================
 
-#if 0
-DLLFUNC void *dllFindResource(int id, char *pType)
-{
-	return NULL;
-}
-
-DLLFUNC void *dllLoadResource(void *pHandle)
-{
-	return NULL;
-}
-
-DLLFUNC void dllFreeResource(void *pHandle)
-{
-	return;
-}
-#endif
-
 extern refexport_t GetRefAPI(refimport_t rimp);
 
 dll_tExportSymbol DLL_ExportSymbols[] =
 {
-	//{(void *)dllFindResource,"dllFindResource"}, // (void *) Cowcat
-	//{(void *)dllLoadResource,"dllLoadResource"},
-	//{(void *)dllFreeResource,"dllFreeResource"},
 	{(void *)GetRefAPI,"GetRefAPI"},
 	{(void *)GetWindowHandle, "GetWindowHandle"},
 	{0, 0},
@@ -803,9 +754,6 @@ void DLL_DeInit(void)
 {
 }
 
-#ifdef __GNUC__
-extern int main(int, char **); // new Cowcat
-#endif
 
 ULONG GetMode(int w, int h)
 {   

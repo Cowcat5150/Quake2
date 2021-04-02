@@ -88,8 +88,5 @@ void DLL_DeInit()
 {
 }
 
-#if defined (__GNUC__)
-extern int main(int, char **); // new Cowcat
-#endif
 
 #endif

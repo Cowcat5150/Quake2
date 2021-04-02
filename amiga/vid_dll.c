@@ -1,22 +1,14 @@
 #include "../client/client.h"
 #include "dll.h"
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <intuition/screens.h>
 #include <intuition/intuition.h>
 #include <proto/intuition.h>
 #include <proto/dos.h>
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 // Structure containing functions exported from refresh DLL
 refexport_t	re;
@@ -309,7 +301,7 @@ qboolean VID_LoadRefresh( char *name )
 	if(vid_ref)
 	{
 		if(!strcmp(vid_ref->string,"glnolru"))
-			vidref_val = 2;
+			vidref_val = VIDREF_GL; //2; why 2 ? - Cowcat
 
 		else if(!strcmp (vid_ref->string, "gl"))
 			vidref_val = VIDREF_GL;
@@ -360,6 +352,8 @@ void VID_CheckChanges (void)
 
 		if ( !VID_LoadRefresh( name ) )
 		{
+			printf("VID_CheckChanges !VID_Loadrefresh\n");
+
 			if ( strcmp (vid_ref->string, "soft") == 0 )
 				Com_Error (ERR_FATAL, "Could not fall back to software refresh!");
 
@@ -402,6 +396,7 @@ void VID_Init (void)
 	Cmd_AddCommand ("vid_front", VID_Front_f);
 
 	/* Start the graphics mode and load refresh DLL */
+
 	VID_CheckChanges();
 }
 

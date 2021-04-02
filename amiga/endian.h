@@ -50,23 +50,6 @@ float __LittleFloat(__reg("fp0") float) =
 #else  // !VBCC
 
 /*
-volatile static inline long LittleLong(long l)
-{
-    volatile long r;
-    volatile long d = l;
-    __asm volatile(
-	  "lwbrx %0,0,%1"
-	  : "=r" (r)
-	  : "r" (&d)
-    );
-
-    return r;
-}
-*/
-
-#define LittleLong(x) (((uint32_t)(x) << 24 ) | (((uint32_t)(x) & 0xff00) << 8 ) | (((uint32_t)(x) & 0x00ff0000) >> 8 ) | ((uint32_t)(x) >> 24))
-
-/*
 volatile static inline short LittleShort(short l)
 {
     volatile short r;
@@ -85,6 +68,24 @@ static inline short LittleShort (short l)
 {
 	return __builtin_bswap16(l);
 }
+
+/*
+volatile static inline long LittleLong(long l)
+{
+    volatile long r;
+    volatile long d = l;
+    __asm volatile(
+	  "lwbrx %0,0,%1"
+	  : "=r" (r)
+	  : "r" (&d)
+    );
+
+    return r;
+}
+*/
+
+#define LittleLong(x) (((uint32_t)(x) << 24 ) | (((uint32_t)(x) & 0xff00) << 8 ) | (((uint32_t)(x) & 0x00ff0000) >> 8 ) | ((uint32_t)(x) >> 24))
+
 
 static inline float LittleFloat(float l)
 {
