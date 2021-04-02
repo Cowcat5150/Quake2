@@ -11,11 +11,7 @@
 **  - Add mode requester
 */
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 #include <exec/exec.h>
 #include <devices/ahi.h>
@@ -37,11 +33,7 @@
 #endif
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined(WARPUP)
 #pragma pack(pop)
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -63,13 +55,13 @@ unsigned short callback[] = {
 };
 
 
-#pragma amiga-align
+#pragma pack(push,2)
 struct ChannelInfo
 {
 	struct AHIEffChannelInfo cinfo;
 	ULONG x[1];
 };
-#pragma default-align
+#pragma pack(pop)
 
 struct Library *AHIBase = NULL;
 static struct MsgPort *AHImp = NULL;
@@ -370,7 +362,5 @@ void DLL_DeInit(void)
 {
 }
 
-#if defined (__GNUC__)
-extern int main(int, char **); // new Cowcat
-#endif
+
 

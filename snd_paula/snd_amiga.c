@@ -6,11 +6,7 @@
 #include "../client/snd_loc.h"
 #include "../amiga/snddll.h"
 
-#ifdef __VBCC__
-#pragma amiga-align
-#elif defined(WARPUP)
 #pragma pack(push,2)
-#endif
 
 //#include <clib/timer_protos.h> // Cowcat
 #include <exec/exec.h>
@@ -33,11 +29,7 @@
 #endif
 #endif
 
-#ifdef __VBCC__
-#pragma default-align
-#elif defined(WARPUP)
 #pragma pack(pop)
-#endif
 
 //#include "snd_interrupt.h"
 
@@ -418,6 +410,4 @@ void DLL_DeInit(void)
 {
 }
 
-#if defined (__GNUC__)
-extern int main(int, char **); // new Cowcat
-#endif
+

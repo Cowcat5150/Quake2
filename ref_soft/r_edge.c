@@ -37,13 +37,13 @@ void R_EdgeCodeEnd (void)
 #endif
 
 
-#if 0
+/*
 the complex cases add new polys on most lines, so dont optimize for keeping them the same
 have multiple free span lists to try to get better coherence?
 low depth complexity -- 1 to 3 or so
 
 have a sentinal at both ends?
-#endif
+*/
 
 
 edge_t	*auxedges;
@@ -115,6 +115,7 @@ void R_BeginEdgeFrame (void)
 
 	surface_p = &surfaces[2];	// background is surface 1,
 					//  surface 0 is a dummy
+
 	surfaces[1].spans = NULL;	// no background spans yet
 	surfaces[1].flags = SURF_DRAWBACKGROUND;
 
@@ -141,7 +142,6 @@ void R_BeginEdgeFrame (void)
 }
 
 
-#if !id386
 
 /*
 ==============
@@ -202,10 +202,6 @@ addedge:
 	} while ((edgestoadd = next_edge) != NULL);
 }
 
-#endif	// !id386
-	
-
-#if	!id386
 
 /*
 ==============
@@ -223,10 +219,6 @@ void R_RemoveEdges (edge_t *pedge)
 	} while ((pedge = pedge->nextremove) != NULL);
 }
 
-#endif	// !id386
-
-
-#if !id386
 
 /*
 ==============
@@ -301,8 +293,6 @@ pushback:
 			return;
 	}
 }
-
-#endif	// !id386
 
 
 /*
@@ -465,8 +455,6 @@ void R_TrailingEdge (surf_t *surf, edge_t *edge)
 }
 
 
-#if !id386
-
 /*
 ==============
 R_LeadingEdge
@@ -627,8 +615,6 @@ void R_GenerateSpans (void)
 	R_CleanupSpan ();
 }
 
-#endif	// !id386
-
 
 /*
 ==============
@@ -707,7 +693,7 @@ void R_ScanEdges (void)
 	edge_aftertail.prev = &edge_tail;
 
 	// FIXME: do we need this now that we clamp x in r_draw.c?
-	edge_sentinel.u = INT_MAX; // 2000 << 24;	// make sure nothing sorts past this - look for INT_MAX - Cowcat
+	edge_sentinel.u = INT_MAX; // 2000 << 24; - make sure nothing sorts past this - look for INT_MAX - Cowcat
 	edge_sentinel.prev = &edge_aftertail;
 
 	//	
@@ -733,7 +719,7 @@ void R_ScanEdges (void)
 
 		// flush the span list if we can't be sure we have enough spans left for
 		// the next scan
-		if (span_p >= max_span_p) // added = Cowcat
+		if (span_p + r_refdef.vrect.width >= max_span_p) // added = Cowcat - added + vrec.width - new
 		{
 			D_DrawSurfaces ();
 

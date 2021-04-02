@@ -143,8 +143,6 @@ cvar_t	*sw_lockpvs;
 #define	STRINGER(x) "x"
 
 
-#if	!id386
-
 // r_vars.c
 
 // all global and static refresh variables are collected in a contiguous block
@@ -183,9 +181,6 @@ short		*d_pzbuffer;
 unsigned int	d_zrowbytes;
 unsigned int	d_zwidth;
 
-
-#endif	// !id386
-
 byte	r_notexture_buffer[1024];
 
 /*
@@ -194,7 +189,7 @@ R_InitTextures
 ==================
 */
 
-void	R_InitTextures (void)
+void R_InitTextures (void)
 {
 	int	x,y, m;
 	byte	*dest;
@@ -322,13 +317,6 @@ DLLFUNC qboolean R_Init( void *hInstance, void *wndProc )
 	r_refdef.xOrigin = XCENTERING;
 	r_refdef.yOrigin = YCENTERING;
 
-// TODO: collect 386-specific code in one place
-#if	id386
-	Sys_MakeCodeWriteable ((long)R_EdgeCodeStart,
-					     (long)R_EdgeCodeEnd - (long)R_EdgeCodeStart);
-	Sys_SetFPCW ();		// get bit masks for FPCW	(FIXME: is this id386?)
-#endif	// id386
-
 	r_aliasuvscale = 1.0;
 
 	R_Register ();
@@ -358,7 +346,6 @@ R_Shutdown
 
 DLLFUNC void R_Shutdown (void)
 {
-	
 	// free z buffer
 	if (d_pzbuffer)
 	{
@@ -388,7 +375,6 @@ DLLFUNC void R_Shutdown (void)
 	R_ShutdownImages ();
 	
 	SWimp_Shutdown();
-	
 }
 
 /*
@@ -726,7 +712,8 @@ static mnode_t *R_FindTopnode (vec3_t mins, vec3_t maxs)
 		}
 		
 		splitplane = node->plane;
-		sides = BOX_ON_PLANE_SIDE(mins, maxs, (cplane_t *)splitplane);
+		//sides = BOX_ON_PLANE_SIDE(mins, maxs, (cplane_t *)splitplane);
+		sides = BoxOnPlaneSide(mins, maxs, (cplane_t *)splitplane); // Cowcat
 		
 		if (sides == 3)
 			return node;	// this is the splitter
@@ -989,6 +976,7 @@ static void R_CalcPalette (void)
 			R_GammaCorrectAndSetPalette( ( const unsigned char * ) d_8to24table );
 			return;
 		}
+
 		return;
 	}
 
@@ -1377,7 +1365,7 @@ R_SetSky
 // 3dstudio environment map names
 char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 int	r_skysideimage[6] = {5, 2, 4, 1, 0, 3};
-extern	mtexinfo_t		r_skytexinfo[6];
+extern	mtexinfo_t r_skytexinfo[6];
 
 DLLFUNC void R_SetSky (char *name, float rotate, vec3_t axis)
 {
@@ -1445,7 +1433,7 @@ GetRefAPI
 
 DLLFUNC refexport_t GetRefAPI (refimport_t rimp)
 {
-	refexport_t	re;
+	refexport_t	re = {0}; // added clean - Cowcat
 
 	ri = rimp;
 

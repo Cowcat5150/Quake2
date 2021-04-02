@@ -2747,7 +2747,7 @@ GetRefAPI
 
 DLLFUNC refexport_t GetRefAPI (refimport_t rimp ) 
 { 
-	refexport_t	re; 
+	refexport_t	re = {0}; // added clean - Cowcat 
  
 	ri = rimp; 
  
