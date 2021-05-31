@@ -109,7 +109,6 @@ GAME_OBJS =\
 	$(GAME_BUILD)/g_turret.o \
 	$(GAME_BUILD)/g_utils.o \
 	$(GAME_BUILD)/g_weapon.o \
-	$(GAME_BUILD)/m_actor.o \
 	$(GAME_BUILD)/m_berserk.o \
 	$(GAME_BUILD)/m_boss2.o \
 	$(GAME_BUILD)/m_boss3.o \
@@ -651,9 +650,6 @@ $(GAME_BUILD)/g_utils.o: game/g_utils.c $(INC_G)
 	$(DO_CC)
 
 $(GAME_BUILD)/g_weapon.o: game/g_weapon.c $(INC_G)
-	$(DO_CC)
-
-$(GAME_BUILD)/m_actor.o: game/m_actor.c $(INC_G)
 	$(DO_CC)
 
 $(GAME_BUILD)/m_berserk.o: game/m_berserk.c $(INC_G)
