@@ -27,96 +27,6 @@ vec3_t vec3_origin = {0,0,0};
 
 //============================================================================
 
-#if 0
-
-void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees )
-{
-	float	m[3][3];
-	float	im[3][3];
-	float	zrot[3][3];
-	float	tmpmat[3][3];
-	float	rot[3][3];
-	int	i;
-	vec3_t	vr, vup, vf;
-
-	vf[0] = dir[0];
-	vf[1] = dir[1];
-	vf[2] = dir[2];
-
-	PerpendicularVector( vr, dir );
-	CrossProduct( vr, vf, vup );
-
-	m[0][0] = vr[0];
-	m[1][0] = vr[1];
-	m[2][0] = vr[2];
-
-	m[0][1] = vup[0];
-	m[1][1] = vup[1];
-	m[2][1] = vup[2];
-
-	m[0][2] = vf[0];
-	m[1][2] = vf[1];
-	m[2][2] = vf[2];
-
-	//memcpy( im, m, sizeof( im ) );
-
-	im[0][0] = m[0][0]; // r1
-	im[0][1] = m[1][0];
-	im[0][2] = m[2][0];
-
-	im[1][0] = m[0][1];
-	im[1][1] = m[1][1]; // r1
-	im[1][2] = m[2][1];
-
-	im[2][0] = m[0][2];
-	im[2][1] = m[1][2];
-	im[2][2] = m[2][2]; // r1
-
-	//memset( zrot, 0, sizeof( zrot ) );
-	//zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0F;
-
-	#if 0
-
-	zrot[0][0] = cos( DEG2RAD( degrees ) ); 
-	zrot[0][1] = sin( DEG2RAD( degrees ) );
-	zrot[0][2] = 0.0f; //
-	
-	zrot[1][0] = -sin( DEG2RAD( degrees ) );
-	zrot[1][1] = cos( DEG2RAD( degrees ) );
-	zrot[1][2] = 0.0f; //
-
-	#else
-
-	float s, c;
-	float rad = ( DEG2RAD( degrees ) );
-	s = sin(rad);
-	c = cos(rad);
-	
-	zrot[0][0] = c;
-	zrot[0][1] = s;
-	zrot[0][2] = 0.0f; //
-	
-	zrot[1][0] = -s;
-	zrot[1][1] = c;
-	zrot[1][2] = 0.0f; //
-
-	#endif
-
-	zrot[2][0] = 0.0f; //
-	zrot[2][1] = 0.0f; //
-	zrot[2][2] = 1.0f; //
-
-	R_ConcatRotations( m, zrot, tmpmat );
-	R_ConcatRotations( tmpmat, im, rot );
-
-	for ( i = 0; i < 3; i++ )
-	{
-		dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
-	}
-}
-
-#else
-
 void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees )
 {
 	float	m[3][3];
@@ -145,8 +55,6 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, 
 	dst[1] = DotProduct( point, m[1] );
 	dst[2] = DotProduct( point, m[2] );
 }
-
-#endif
 
 void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 {
@@ -189,63 +97,6 @@ void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 		up[2] = cr*cp;
 	}
 }
-
-#if 0
-void AngleVectors2(vec3_t value1, vec3_t angles)
-{
-	float forward;
-	float yaw, pitch;
-
-	if ((value1[1] == 0) && (value1[0] == 0))
-	{
-		yaw = 0;
-
-		if (value1[2] > 0)
-		{
-			pitch = 90;
-		}
-
-		else
-		{
-			pitch = 270;
-		}
-	}
-	else
-	{
-		if (value1[0])
-		{
-			yaw = ((float)atan2(value1[1], value1[0]) * 180 / M_PI);
-		}
-
-		else if (value1[1] > 0)
-		{
-			yaw = 90;
-		}
-
-		else
-		{
-			yaw = 270;
-		}
-
-		if (yaw < 0)
-		{
-			yaw += 360;
-		}
-
-		forward = (float)sqrt(value1[0] * value1[0] + value1[1] * value1[1]);
-		pitch = ((float)atan2(value1[2], forward) * 180 / M_PI);
-
-		if (pitch < 0)
-		{
-			pitch += 360;
-		}
-	}
-
-	angles[PITCH] = -pitch;
-	angles[YAW] = yaw;
-	angles[ROLL] = 0;
-}
-#endif
 
 void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal )
 {
@@ -356,7 +207,6 @@ float Q_fabs (float f)
 	int tmp = * ( int * ) &f;
 	tmp &= 0x7FFFFFFF;
 	return * ( float * ) &tmp;
-
 }
 
 /*
@@ -383,46 +233,6 @@ float	anglemod(float a)
 	return a;
 }
 
-//int	  i;
-//vec3_t  corners[2];
-
-#if 0
-// this is the slow, general version
-int BoxOnPlaneSide2 (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
-{
-	int	i;
-	float	dist1, dist2;
-	int	sides;
-	vec3_t	corners[2];
-
-	for (i=0 ; i<3 ; i++)
-	{
-		if (p->normal[i] < 0)
-		{
-			corners[0][i] = emins[i];
-			corners[1][i] = emaxs[i];
-		}
-
-		else
-		{
-			corners[1][i] = emins[i];
-			corners[0][i] = emaxs[i];
-		}
-	}
-
-	dist1 = DotProduct (p->normal, corners[0]) - p->dist;
-	dist2 = DotProduct (p->normal, corners[1]) - p->dist;
-	sides = 0;
-
-	if (dist1 >= 0)
-		sides = 1;
-
-	if (dist2 < 0)
-		sides |= 2;
-
-	return sides;
-}
-#endif
 
 /*
 ==================
@@ -439,7 +249,6 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 	float	dist1, dist2;
 	int	sides;
 
-	#if 1
 	// fast axial cases
 	if (p->type < 3)
 	{
@@ -451,7 +260,6 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 
 		return 3;
 	}
-	#endif
 
 	// general case
 	switch (p->signbits)
@@ -668,8 +476,6 @@ void CrossProduct (vec3_t v1, vec3_t v2, vec3_t cross)
 	cross[2] = v1[0]*v2[1] - v1[1]*v2[0];
 }
 
-//double sqrt(double x);
-
 vec_t VectorLength(vec3_t v)
 {
 	int	i;
@@ -884,28 +690,26 @@ int	LittleLong (int l)	{return _LittleLong(l);}
 float	BigFloat (float l)	{return _BigFloat(l);}
 float	LittleFloat (float l)	{return _LittleFloat(l);}
 
-#if 0
 
-short	ShortSwap (short l)
+short ShortSwap (short l)
 {
+	#if 0
+
 	byte	b1,b2;
 
 	b1 = l&255;
 	b2 = (l>>8)&255;
 
 	return (b1<<8) + b2;
+
+	#else
+
+	return (((unsigned short)l<<8) | ((unsigned short)l>>8));
+
+	#endif
 }
 
-#else
-
-short	ShortSwap (short l)
-{
-  return (((unsigned short)l<<8) | ((unsigned short)l>>8));
-}
-
-#endif
-
-short	ShortNoSwap (short l)
+short ShortNoSwap (short l)
 {
 	return l;
 }
@@ -1242,6 +1046,7 @@ int Q_strlcpy(char *dst, const char *src, int size)
 		}
 		s++;
 	}
+
 	if (size > 0)
 	{
 		*dst = '\0';

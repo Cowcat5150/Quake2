@@ -26,7 +26,6 @@ typedef struct
 	void	(*spawn)(edict_t *ent);
 } spawn_t;
 
-
 void SP_item_health (edict_t *self);
 void SP_item_health_small (edict_t *self);
 void SP_item_health_large (edict_t *self);
@@ -277,7 +276,6 @@ Finds the spawn function for the entity and calls it
 */
 void ED_CallSpawn (edict_t *ent)
 {
-	
 	spawn_t	*s;
 	gitem_t	*item;
 	int	i;
@@ -298,8 +296,10 @@ void ED_CallSpawn (edict_t *ent)
 	{
 		if (!item->classname)
 			continue;
+
 		if (!strcmp(item->classname, ent->classname))
-		{	// found it
+		{
+			// found it
 			SpawnItem (ent, item);
 			return;
 		}
@@ -309,7 +309,8 @@ void ED_CallSpawn (edict_t *ent)
 	for (s=spawns ; s->name ; s++)
 	{
 		if (!strcmp(s->name, ent->classname))
-		{	// found it
+		{
+			// found it
 			s->spawn (ent);
 			return;
 		}
@@ -361,8 +362,6 @@ char *ED_NewString (char *string)
 }
 
 
-
-
 /*
 ===============
 ED_ParseField
@@ -396,37 +395,39 @@ void ED_ParseField (char *key, char *value, edict_t *ent)
 
 			switch (f->type)
 			{
-			case F_LSTRING:
-				*(char **)(b+f->ofs) = ED_NewString (value);
-				break;
+				case F_LSTRING:
+					*(char **)(b+f->ofs) = ED_NewString (value);
+					break;
 
-			case F_VECTOR:
-				sscanf (value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
-				((float *)(b+f->ofs))[0] = vec[0];
-				((float *)(b+f->ofs))[1] = vec[1];
-				((float *)(b+f->ofs))[2] = vec[2];
-				break;
+				case F_VECTOR:
+					sscanf (value, "%f %f %f", &vec[0], &vec[1], &vec[2]);
+					((float *)(b+f->ofs))[0] = vec[0];
+					((float *)(b+f->ofs))[1] = vec[1];
+					((float *)(b+f->ofs))[2] = vec[2];
+					break;
 
-			case F_INT:
-				*(int *)(b+f->ofs) = atoi(value);
-				break;
-			case F_FLOAT:
-				*(float *)(b+f->ofs) = atof(value);
-				break;
+				case F_INT:
+					*(int *)(b+f->ofs) = atoi(value);
+					break;
 
-			case F_ANGLEHACK:
-				v = atof(value);
-				((float *)(b+f->ofs))[0] = 0;
-				((float *)(b+f->ofs))[1] = v;
-				((float *)(b+f->ofs))[2] = 0;
-				break;
+				case F_FLOAT:
+					*(float *)(b+f->ofs) = atof(value);
+					break;
 
-			case F_IGNORE:
-				break;
+				case F_ANGLEHACK:
+					v = atof(value);
+					((float *)(b+f->ofs))[0] = 0;
+					((float *)(b+f->ofs))[1] = v;
+					((float *)(b+f->ofs))[2] = 0;
+					break;
 
-			default:	// added Cowcat
-				break;
+				case F_IGNORE:
+					break;
+
+				default:	// added Cowcat
+					break;
 			}
+
 			return;
 		}
 	}
@@ -464,6 +465,7 @@ char *ED_ParseEdict (char *data, edict_t *ent)
 
 		if (com_token[0] == '}')
 			break;
+
 		if (!data)
 			gi.error ("ED_ParseEntity: EOF without closing brace");
 
@@ -566,7 +568,6 @@ parsing textual entity definitions out of an ent file.
 
 DLLFUNC void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 {
-	
 	edict_t	*ent;
 	int	inhibit;
 	char	*com_token;
@@ -885,6 +886,7 @@ void SP_worldspawn (edict_t *ent)
 		gi.configstring (CS_NAME, ent->message);
 		strncpy (level.level_name, ent->message, sizeof(level.level_name));
 	}
+
 	else
 		strncpy (level.level_name, level.mapname, sizeof(level.level_name));
 
@@ -905,6 +907,7 @@ void SP_worldspawn (edict_t *ent)
 	// status bar program
 	if (deathmatch->value)
 		gi.configstring (CS_STATUSBAR, dm_statusbar);
+
 	else
 		gi.configstring (CS_STATUSBAR, single_statusbar);
 
@@ -919,6 +922,7 @@ void SP_worldspawn (edict_t *ent)
 
 	if (!st.gravity)
 		gi.cvar_set("sv_gravity", "800");
+
 	else
 		gi.cvar_set("sv_gravity", st.gravity);
 
@@ -973,8 +977,8 @@ void SP_worldspawn (edict_t *ent)
 
 	//-------------------
 
-	gi.soundindex ("player/gasp1.wav");		// gasping for air
-	gi.soundindex ("player/gasp2.wav");		// head breaking surface, not gasping
+	gi.soundindex ("player/gasp1.wav");	// gasping for air
+	gi.soundindex ("player/gasp2.wav");	// head breaking surface, not gasping
 
 	gi.soundindex ("player/watr_in.wav");	// feet hitting water
 	gi.soundindex ("player/watr_out.wav");	// feet leaving water
@@ -984,9 +988,9 @@ void SP_worldspawn (edict_t *ent)
 	gi.soundindex ("player/u_breath1.wav");
 	gi.soundindex ("player/u_breath2.wav");
 
-	gi.soundindex ("items/pkup.wav");		// bonus item pickup
-	gi.soundindex ("world/land.wav");		// landing thud
-	gi.soundindex ("misc/h2ohit1.wav");		// landing splash
+	gi.soundindex ("items/pkup.wav");	// bonus item pickup
+	gi.soundindex ("world/land.wav");	// landing thud
+	gi.soundindex ("misc/h2ohit1.wav");	// landing splash
 
 	gi.soundindex ("items/damage.wav");
 	gi.soundindex ("items/protect.wav");
@@ -1003,9 +1007,9 @@ void SP_worldspawn (edict_t *ent)
 	gi.modelindex ("models/objects/gibs/skull/tris.md2");
 	gi.modelindex ("models/objects/gibs/head2/tris.md2");
 
-//
-// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
-//
+	//
+	// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
+	//
 
 	// 0 normal
 	gi.configstring(CS_LIGHTS+0, "m");
