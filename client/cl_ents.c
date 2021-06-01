@@ -1567,7 +1567,6 @@ void CL_CalcViewValues (void)
 {
 	int		i;
 	float		lerp, backlerp, ifov;
-	//centity_t	*ent; //
 	frame_t		*oldframe;
 	player_state_t	*ps, *ops;
 
@@ -1584,10 +1583,10 @@ void CL_CalcViewValues (void)
 	// see if the player entity was teleported this frame
 	if ( abs(ops->pmove.origin[0] - ps->pmove.origin[0]) > 256*8
 		|| abs(ops->pmove.origin[1] - ps->pmove.origin[1]) > 256*8
-		|| abs(ops->pmove.origin[2] - ps->pmove.origin[2]) > 256*8 ) // was fabs - Cowcat
+		|| abs(ops->pmove.origin[2] - ps->pmove.origin[2]) > 256*8 )
+	{
 		ops = ps;		// don't interpolate
-
-	//ent = &cl_entities[cl.playernum + 1]; check this- Cowcat
+	}
 
 	lerp = cl.lerpfrac;
 
@@ -1639,7 +1638,6 @@ void CL_CalcViewValues (void)
 		// use predicted values
 		for (i=0 ; i<3 ; i++)
 			cl.refdef.viewangles[i] = cl.predicted_angles[i];
-		//VectorCopy(cl.predicted_angles, cl.refdef.viewangles); // Cowcat
 	}
 
 	else
