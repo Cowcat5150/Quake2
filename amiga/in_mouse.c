@@ -24,16 +24,17 @@
 
 #pragma pack(pop)
 
-cvar_t	    *m_filter;
-cvar_t	    *in_mouse;
+cvar_t	*m_filter;
+cvar_t	*in_mouse;
+cvar_t	*new_mouse; // Cowcat
 
-qboolean    mlooking;
+qboolean mlooking;
 
-int	    mouse_x, mouse_y;
-int	    old_mouse_x, old_mouse_y;
+int	mouse_x, mouse_y;
+int	old_mouse_x, old_mouse_y;
 
-qboolean    mouseactive;
-qboolean    mouseinitialized;
+qboolean mouseactive;
+qboolean mouseinitialized;
 
 //// Cowcat windowmode MouseHandler stuff 
 
@@ -183,8 +184,18 @@ static int MouseY;
 
 void IN_GetMouseMove(struct IntuiMessage *msg)
 {
-	MouseX = msg->MouseX;
-	MouseY = msg->MouseY;
+	if ( !new_mouse->value )
+	{
+		MouseX = msg->MouseX;
+		MouseY = msg->MouseY;
+
+	}
+
+	else // Cowcat
+	{
+		MouseX += msg->MouseX;
+		MouseY += msg->MouseY;
+	}
 }
 
 
@@ -201,8 +212,8 @@ void IN_MouseMove (usercmd_t *cmd)
 	if (!mouseactive)
 		return;
 
-	mx = (float)MouseX;
-	my = (float)MouseY;
+	mx = MouseX;
+	my = MouseY;
 
 	MouseX = 0;
 	MouseY = 0;
@@ -227,8 +238,17 @@ void IN_MouseMove (usercmd_t *cmd)
 	old_mouse_x = mx;
 	old_mouse_y = my;
 
-	mouse_x *= (sensitivity->value*10);
-	mouse_y *= (sensitivity->value*10);
+	if ( !new_mouse->value )
+	{
+		mouse_x *= (sensitivity->value * 10);
+		mouse_y *= (sensitivity->value * 10);
+	}
+
+	else
+	{
+		mouse_x *= sensitivity->value;
+		mouse_y *= sensitivity->value;
+	}
 
 	// add mouse X/Y movement to cmd
 
@@ -255,6 +275,7 @@ void IN_InitMouse()
 	// mouse variables
 	m_filter = Cvar_Get ("m_filter", "0", 0);
 	in_mouse = Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
+	new_mouse = Cvar_Get ("new_mouse", "0", CVAR_ARCHIVE); // Cowcat
 
 	// Mouse commands
 	Cmd_AddCommand ("+mlook", IN_MLookDown);
