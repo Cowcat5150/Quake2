@@ -19,13 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include "g_local.h"
 
+void monster_start_go (edict_t *self);
+
 // monster weapons
 
-
-//FIXME mosnters should call these with a totally accurate direction
-// and we can mess it up based on skill.  Spread should be for normal
-// and we can tighten or loosen based on skill.  We could muck with
-// the damages too, but I'm not sure that's such a good idea.
 void monster_fire_bullet (edict_t *self, vec3_t start, vec3_t dir, int damage, int kick, int hspread, int vspread, int flashtype)
 {
 	if (!self)
@@ -462,12 +459,20 @@ void M_MoveFrame (edict_t *self)
 
 	if ((self->monsterinfo.nextframe) && (self->monsterinfo.nextframe >= move->firstframe) && (self->monsterinfo.nextframe <= move->lastframe))
 	{
-		self->s.frame = self->monsterinfo.nextframe;
+		if ( self->s.frame != self->monsterinfo.nextframe )
+		{
+			self->s.frame = self->monsterinfo.nextframe;
+			self->monsterinfo.aiflags &= ~AI_HOLD_FRAME;
+		}
+
 		self->monsterinfo.nextframe = 0;
 	}
 
 	else
 	{
+		/* prevent nextframe from leaking into a future move */
+		self->monsterinfo.nextframe = 0;
+
 		if (self->s.frame == move->lastframe)
 		{
 			if (move->endfunc)
@@ -568,10 +573,6 @@ void monster_use (edict_t *self, edict_t *other, edict_t *activator)
 	self->enemy = activator;
 	FoundTarget (self);
 }
-
-
-void monster_start_go (edict_t *self);
-
 
 void monster_triggered_spawn (edict_t *self)
 {
@@ -720,8 +721,10 @@ qboolean monster_start (edict_t *self)
 
 	// randomize what frame they start on
 	if (self->monsterinfo.currentmove)
+	{
 		self->s.frame = self->monsterinfo.currentmove->firstframe +
 			(rand() % (self->monsterinfo.currentmove->lastframe - self->monsterinfo.currentmove->firstframe + 1));
+	}
 
 	return true;
 }
@@ -849,15 +852,13 @@ void walkmonster_start_go (edict_t *self)
 	if (!self->yaw_speed)
 		self->yaw_speed = 20;
 
-	if (!self->viewheight) // new Cowcat
+	if (!self->viewheight)
 		self->viewheight = 25;
-
-	//monster_start_go (self); // new disabled - Cowcat
 
 	if (self->spawnflags & 2)
 		monster_triggered_start (self);
 
-	else //new Cowcat
+	else
 		monster_start_go (self);
 }
 
@@ -886,15 +887,13 @@ void flymonster_start_go (edict_t *self)
 	if (!self->yaw_speed)
 		self->yaw_speed = 10;
 
-	if (!self->viewheight) // new Cowcat
+	if (!self->viewheight)
 		self->viewheight = 25;
-
-	//monster_start_go (self); // new disabled - Cowcat
 
 	if (self->spawnflags & 2)
 		monster_triggered_start (self);
 
-	else // new Cowcat
+	else
 		monster_start_go (self);
 }
 
@@ -922,15 +921,13 @@ void swimmonster_start_go (edict_t *self)
 	if (!self->yaw_speed)
 		self->yaw_speed = 10;
 
-	if (!self->viewheight) // new Cowcat
+	if (!self->viewheight)
 		self->viewheight = 10;
-
-	//monster_start_go (self); // new disabled - Cowcat
 
 	if (self->spawnflags & 2)
 		monster_triggered_start (self);
 
-	else // new Cowcat
+	else
 		monster_start_go (self);
 }
 
