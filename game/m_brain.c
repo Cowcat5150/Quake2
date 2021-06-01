@@ -343,7 +343,10 @@ void brain_dodge (edict_t *self, edict_t *attacker, float eta)
 		return;
 
 	if (!self->enemy)
+	{
 		self->enemy = attacker;
+		FoundTarget(self);
+	}
 
 	self->monsterinfo.pausetime = level.time + eta + 0.5;
 	self->monsterinfo.currentmove = &brain_move_duck;

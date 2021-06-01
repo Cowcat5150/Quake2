@@ -603,7 +603,7 @@ void medic_dodge (edict_t *self, edict_t *attacker, float eta)
 	if (!self->enemy)
 	{
 		self->enemy = attacker;
-		//FoundTarget(self); // future Cowcat
+		FoundTarget(self);
 	}
 
 	self->monsterinfo.currentmove = &medic_move_duck;
