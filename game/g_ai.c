@@ -229,7 +229,9 @@ void ai_charge (edict_t *self, float dist)
 		return;
 	}
 
-	VectorSubtract (self->enemy->s.origin, self->s.origin, v);
+	if (self->enemy)
+		VectorSubtract (self->enemy->s.origin, self->s.origin, v);
+
 	self->ideal_yaw = vectoyaw(v);
 	M_ChangeYaw (self);
 
@@ -265,7 +267,6 @@ void ai_turn (edict_t *self, float dist)
 
 
 /*
-
 .enemy
 Will be world if not currently angry at anyone.
 
@@ -409,7 +410,9 @@ void HuntTarget (edict_t *self)
 	else
 		self->monsterinfo.run (self);
 
-	VectorSubtract (self->enemy->s.origin, self->s.origin, vec);
+	if (visible(self, self->enemy))
+		VectorSubtract (self->enemy->s.origin, self->s.origin, vec);
+
 	self->ideal_yaw = vectoyaw(vec);
 
 	// wait a while before first attack
@@ -497,13 +500,6 @@ qboolean FindTarget (edict_t *self)
 
 	if (self->monsterinfo.aiflags & AI_GOOD_GUY)
 	{
-		if (self->goalentity && self->goalentity->inuse && self->goalentity->classname)
-		{
-			if (strcmp(self->goalentity->classname, "target_actor") == 0)
-				return false;
-		}
-
-		//FIXME look for monsters?
 		return false;
 	}
 
@@ -515,12 +511,9 @@ qboolean FindTarget (edict_t *self)
 	// really seeing the player, not another monster getting angry or hearing
 	// something
 
-	// revised behavior so they will wake up if they "see" a player make a noise
-	// but not weapon impact/explosion noises
-
 	heardit = false;
 
-	if ((level.sight_entity_framenum >= (level.framenum - 1)) && !(self->spawnflags & 1) )
+	if ( (level.sight_entity_framenum >= (level.framenum - 1)) && !(self->spawnflags & 1) )
 	{
 		client = level.sight_entity;
 
@@ -536,7 +529,7 @@ qboolean FindTarget (edict_t *self)
 		heardit = true;
 	}
 
-	else if (!(self->enemy) && (level.sound2_entity_framenum >= (level.framenum - 1)) && !(self->spawnflags & 1) )
+	else if ( !(self->enemy) && (level.sound2_entity_framenum >= (level.framenum - 1)) && !(self->spawnflags & 1) )
 	{
 		client = level.sound2_entity;
 		heardit = true;
@@ -555,7 +548,7 @@ qboolean FindTarget (edict_t *self)
 		return false;
 
 	if (client == self->enemy)
-		return true;	// JDC false;
+		return true;
 
 	if (client->client)
 	{
@@ -659,8 +652,10 @@ qboolean FindTarget (edict_t *self)
 
 		// check area portals - if they are different and not connected then we can't hear it
 		if (client->areanum != self->areanum)
+		{
 			if (!gi.AreasConnected(self->areanum, client->areanum))
 				return false;
+		}
 
 		self->ideal_yaw = vectoyaw(temp);
 		M_ChangeYaw (self);
@@ -670,9 +665,6 @@ qboolean FindTarget (edict_t *self)
 		self->enemy = client;
 	}
 
-	//
-	// got one
-	//
 	FoundTarget (self);
 
 	if (!(self->monsterinfo.aiflags & AI_SOUND_TARGET) && (self->monsterinfo.sight))
@@ -788,10 +780,10 @@ qboolean M_CheckAttack (edict_t *self)
 		return false;
 	}
 
-	if (skill->value == 0)
+	if (skill->value == 0) // SKILL_EASY
 		chance *= 0.5;
 
-	else if (skill->value >= 2)
+	else if (skill->value >= 2) // SKILL_HARD
 		chance *= 2;
 
 	if (random () < chance)
@@ -834,7 +826,7 @@ void ai_run_melee(edict_t *self)
 
 	if (FacingIdeal(self))
 	{
-		if(self->monsterinfo.melee) // yamagi
+		if(self->monsterinfo.melee)
 		{ 
 			self->monsterinfo.melee (self);
 			self->monsterinfo.attack_state = AS_STRAIGHT;
@@ -863,7 +855,7 @@ void ai_run_missile(edict_t *self)
 
 	if (FacingIdeal(self))
 	{
-		if(self->monsterinfo.attack) // yamagi
+		if(self->monsterinfo.attack)
 		{ 
 			self->monsterinfo.attack (self);
 			self->monsterinfo.attack_state = AS_STRAIGHT;
@@ -932,7 +924,7 @@ qboolean ai_checkattack (edict_t *self, float dist)
 		if (self->monsterinfo.aiflags & AI_COMBAT_POINT)
 			return false;
 
-		if (self->monsterinfo.aiflags & AI_SOUND_TARGET)
+		if ( (self->monsterinfo.aiflags & AI_SOUND_TARGET) && !visible(self, self->goalentity) )
 		{
 			if ((level.time - self->enemy->teleport_time) > 5.0)
 			{
@@ -997,7 +989,6 @@ qboolean ai_checkattack (edict_t *self, float dist)
 	{
 		self->enemy = NULL;
 
-		// FIXME: look all around for other targets
 		if (self->oldenemy && self->oldenemy->health > 0)
 		{
 			self->enemy = self->oldenemy;
@@ -1039,26 +1030,21 @@ qboolean ai_checkattack (edict_t *self, float dist)
 		VectorCopy (self->enemy->s.origin, self->monsterinfo.last_sighting);
 	}
 
-	#if 1 // yamagi - enabled & fixed
 
 	// look for other coop players here
-	if (coop->value && self->monsterinfo.search_time < level.time) // was coop
+	if (coop->value && self->monsterinfo.search_time < level.time)
 	{
 		if (FindTarget (self))
 			return true;
 	}
 
-	#endif
-
-	if (self->enemy) // new Cowcat
+	if (self->enemy)
 	{
 		enemy_infront = infront(self, self->enemy);
 		enemy_range = range(self, self->enemy);
 		VectorSubtract (self->enemy->s.origin, self->s.origin, temp);
 		enemy_yaw = vectoyaw(temp);
 	}
-
-	// JDC self->ideal_yaw = enemy_yaw;
 
 	if (self->monsterinfo.attack_state == AS_MISSILE)
 	{
@@ -1115,13 +1101,23 @@ void ai_run (edict_t *self, float dist)
 
 	if (self->monsterinfo.aiflags & AI_SOUND_TARGET)
 	{
-		VectorSubtract (self->s.origin, self->enemy->s.origin, v);
-
-		if (VectorLength(v) < 64)
+		/* Special case: Some projectiles like grenades or rockets are
+		classified as an enemy. When they explode they generate a
+		sound entity, triggering this code path. Since they're gone
+		after the explosion their entity pointer is NULL. Therefor
+		self->enemy is also NULL and we're crashing. Work around
+		this by predending that the enemy is still there, and move
+		to it. */
+		if (self->enemy)
 		{
-			self->monsterinfo.aiflags |= (AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
-			self->monsterinfo.stand (self);
-			return;
+			VectorSubtract (self->s.origin, self->enemy->s.origin, v);
+
+			if (VectorLength(v) < 64)
+			{
+				self->monsterinfo.aiflags |= (AI_STAND_GROUND | AI_TEMP_STAND_GROUND);
+				self->monsterinfo.stand (self);
+				return;
+			}
 		}
 
 		M_MoveToGoal (self, dist);
