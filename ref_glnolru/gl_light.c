@@ -36,36 +36,6 @@ DYNAMIC LIGHTS BLEND RENDERING
 =============================================================================
 */
 
-#if 0
-
-#undef qglColor3f
-#undef qglVertex3fv
-
-#define qglColor3f(red,green,blue) {\
-CC->CurrentColor.r = (W3D_Float)(red);\
-CC->CurrentColor.g = (W3D_Float)(green);\
-CC->CurrentColor.b = (W3D_Float)(blue);\
-CC->CurrentColor.a = 1.f;\
-CC->UpdateCurrentColor = GL_TRUE;\
-}\
-
-#define qglVertex3fv(v){\
-	if(CC->ShadeModel == GL_SMOOTH)\
-	{\
-		MGLVERT.v.color.r = CC->CurrentColor.r;\
-		MGLVERT.v.color.g = CC->CurrentColor.g;\
-		MGLVERT.v.color.b = CC->CurrentColor.b;\
-		MGLVERT.v.color.a = CC->CurrentColor.a;\
-	}\
-	MGLVERT.bx=((GLfloat*)(v))[0];\
-	MGLVERT.by=((GLfloat*)(v))[1];\
-	MGLVERT.bz=((GLfloat*)(v))[2];\
-	MGLVERT.bw=(GLfloat)1.f;\
-	CC->VertexBufferPointer++;\
-}\
-
-#endif
-
 #ifdef AMIGAOS //surgeon
 
 float glowcos[17] =  
@@ -517,155 +487,6 @@ vec3_t		pointcolor;
 cplane_t	*lightplane;	// used as shadow plane (where ? - Cowcat)
 vec3_t		lightspot;	// for shadows
 
-#if 0
-
-void VectorMA2 (vec3_t veca, float scale, unsigned char *b, vec3_t vecc)
-{
-	vecc[0] = veca[0] + scale*b[0];
-	vecc[1] = veca[1] + scale*b[1];
-	vecc[2] = veca[2] + scale*b[2];
-}
-
-static int LightPoint_RecursiveBSPNode (model_t *model, vec3_t ambientcolor, const mnode_t *node, float x, float y, float startz, float endz)
-{
-   	int side;
-   	float front, back;
-   	float mid, distz = endz - startz;
-
-loc0:
-   	//if (!node->plane)
-   	if (node->contents != -1)
-      		return false;      // didn't hit anything
-
-   	switch (node->plane->type)
-   	{
-   		case PLANE_X:
-      			node = node->children[x < node->plane->dist];
-      			goto loc0;
-
-   		case PLANE_Y:
-      			node = node->children[y < node->plane->dist];
-      			goto loc0;
-
-   		case PLANE_Z:
-      			side = startz < node->plane->dist;
-
-      			if ((endz < node->plane->dist) == side)
-      			{
-         			node = node->children[side];
-         			goto loc0;
-      			}
-
-      			// found an intersection
-      			mid = node->plane->dist;
-      			break;
-
-   		default:
-      			back = front = x * node->plane->normal[0] + y * node->plane->normal[1];
-      			front += startz * node->plane->normal[2];
-      			back += endz * node->plane->normal[2];
-      			side = front < node->plane->dist;
-
-      			if ((back < node->plane->dist) == side)
-      			{
-         			node = node->children[side];
-         			goto loc0;
-      			}
-
-      			// found an intersection
-      			mid = startz + distz * (front - node->plane->dist) / (front - back);
-      			break;
-   	}
-
-   	// go down front side
-   	if (node->children[side]->plane && LightPoint_RecursiveBSPNode(model, ambientcolor, node->children[side], x, y, startz, mid))
-   	{
-      		return true;   // hit something
-   	}
-
-   	else
-   	{
-      		// check for impact on this node
-      		if (node->numsurfaces)
-      		{
-         		unsigned int i;
-         		int dsi, dti, lmwidth, lmheight;
-         		float ds, dt;
-         		msurface_t *surface;
-         		unsigned char *lightmap;
-         		int maps, line3, size3;
-         		float dsfrac;
-         		float dtfrac;
-         		float w00, w01, w10, w11;
-
-         		surface = model->surfaces + node->firstsurface;
-
-         		for (i = 0; i < node->numsurfaces; ++i, ++surface)
-         		{
-            			if (surface->flags & (SURF_DRAWTURB|SURF_DRAWSKY))
-               				continue;   // no lightmaps
-
-            // location we want to sample in the lightmap
-            ds = ((x * surface->texinfo->vecs[0][0] + y * surface->texinfo->vecs[0][1] + mid * surface->texinfo->vecs[0][2] + surface->texinfo->vecs[0][3]) - surface->texturemins[0]) * 0.0625f;
-            dt = ((x * surface->texinfo->vecs[1][0] + y * surface->texinfo->vecs[1][1] + mid * surface->texinfo->vecs[1][2] + surface->texinfo->vecs[1][3]) - surface->texturemins[1]) * 0.0625f;
-
-            if (ds >= 0.0f && dt >= 0.0f) // jit - fix for negative light values
-            {
-               int dsi = (int)ds;
-               int dti = (int)dt;
-
-               lmwidth = ((surface->extents[0] >> 4) + 1);
-               lmheight = ((surface->extents[1] >> 4) + 1);
-
-               // is it in bounds?
-               if (dsi < lmwidth && dti < lmheight) // jit - fix for black models right on brush splits.
-               {
-
-                  // calculate bilinear interpolation factors
-                  // and also multiply by fixedpoint conversion factors
-                  dsfrac = ds - dsi;
-                  dtfrac = dt - dti;
-
-                  w00 = (1 - dsfrac) * (1 - dtfrac) * (1.0f / 255.0f);
-                  w01 = (    dsfrac) * (1 - dtfrac) * (1.0f / 255.0f);
-                  w10 = (1 - dsfrac) * (    dtfrac) * (1.0f / 255.0f);
-                  w11 = (    dsfrac) * (    dtfrac) * (1.0f / 255.0f);
-
-                  // values for pointer math
-                  line3 = lmwidth * 3;
-                  size3 = lmwidth * lmheight * 3;
-
-                  // look up the pixel
-                  lightmap = surface->samples + dti * line3 + dsi * 3;
-                  //lightmap = surface->stain_samples + dti * line3 + dsi * 3; // Note: comment this line out and use the one above if you do not have stainmaps
-
-                  // bilinear filter each lightmap style, and sum them
-                  for (maps = 0; maps < MAXLIGHTMAPS && surface->styles[maps] != 255; maps++)
-                  {
-                     VectorMA2(ambientcolor, w00, lightmap            , ambientcolor);
-                     VectorMA2(ambientcolor, w01, lightmap + 3        , ambientcolor);
-                     VectorMA2(ambientcolor, w10, lightmap + line3    , ambientcolor);
-                     VectorMA2(ambientcolor, w11, lightmap + line3 + 3, ambientcolor);
-
-                     lightmap += size3;
-                  }
-
-                  return true; // success
-               }
-            }
-         }
-      }
-
-      // go down back side
-      node = node->children[side ^ 1];
-      startz = mid;
-      distz = endz - startz;
-      goto loc0;
-   }
-}
-
-#endif
-
 int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 {
 	float		front, back, frac;
@@ -877,13 +698,6 @@ void R_LightPoint (vec3_t p, vec3_t color)
 	r = RecursiveLightPoint (r_worldmodel->nodes, p, end);
 
 	#endif
-
-	/*
-	VectorClear(pointcolor);
-   	r = LightPoint_RecursiveBSPNode(r_worldmodel, pointcolor, r_worldmodel->nodes, p[0], p[1], p[2], p[2] - 2048.0f);
-
-   	if (r <= 0)
-	*/
 
 	if (r == -1)
 	{
@@ -1370,4 +1184,3 @@ store:
 		}
 	}
 }
-

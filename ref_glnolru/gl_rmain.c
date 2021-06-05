@@ -184,96 +184,6 @@ Returns true if the box is completely outside the frustom
 ================= 
 */ 
 
-#if 0 // test
-
-int BoxOnPlaneSideTest (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
-{
-	float	dist1, dist2;
-	int	sides;
-
-	// fast axial cases
-	if (p->type < 3)
-	{
-		if (p->dist <= emins[p->type])
-		{
-			ri.Con_Printf (PRINT_ALL, "type 1\n");
-			return 1;
-		}
-
-		if (p->dist >= emaxs[p->type])
-		{
-			ri.Con_Printf (PRINT_ALL, "type 2\n");
-			return 2;
-		}
-
-		ri.Con_Printf (PRINT_ALL, "type 3\n");
-		return 3;
-	}
-
-	// general case
-	switch (p->signbits)
-	{
-		case 0:
-			dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
-			dist2 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
-			break;
-
-		case 1:
-			dist1 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
-			dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
-			break;
-
-		case 2:
-			dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
-			dist2 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
-			break;
-
-		case 3:
-			dist1 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
-			dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
-			break;
-
-		case 4:
-			dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
-			dist2 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
-			break;
-
-		case 5:
-			dist1 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emins[2];
-			dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emaxs[2];
-			break;
-
-		case 6:
-			dist1 = p->normal[0]*emaxs[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
-			dist2 = p->normal[0]*emins[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
-			break;
-
-		case 7:
-			dist1 = p->normal[0]*emins[0] + p->normal[1]*emins[1] + p->normal[2]*emins[2];
-			dist2 = p->normal[0]*emaxs[0] + p->normal[1]*emaxs[1] + p->normal[2]*emaxs[2];
-			break;
-
-		default:
-			dist1 = dist2 = 0;		// shut up compiler
-			//assert( 0 );
-			break;
-	}
-
-	sides = 0;
-
-	if (dist1 >= p->dist)
-		sides = 1;
-
-	if (dist2 < p->dist)
-		sides |= 2;
-
-	//assert( sides != 0 );
-
-	return sides;
-}
-
-#endif
-
 #ifndef ALT_BOPS
 //surgeon: made a macro in q_shared.h
 
@@ -886,7 +796,8 @@ void R_DrawEntitiesOnList (void)
 
 	qglDepthMask (1);	// back to writing 
 
-} 
+}
+
 #endif 
 
 /* 
@@ -952,7 +863,7 @@ void GL_DrawParticles( int num_particles, const particle_t particles[], const un
 			qglColor4ubv( color ); 
  
 			qglTexCoord2f( 0.0625, 0.0625 ); 
-			qglVertex3fv( p->origin ); 
+			qglVertex3fv( p->origin );
  
 			qglTexCoord2f( 1.0625, 0.0625 ); 
 			qglVertex3f( p->origin[0] + up[0]*scale,  
@@ -1061,7 +972,7 @@ void R_DrawParticles (void)
  
 		qglDepthMask( GL_FALSE ); 
 		qglEnable( GL_BLEND ); 
-		qglDisable( GL_TEXTURE_2D ); 
+		qglDisable( GL_TEXTURE_2D );
  
 		qglPointSize( gl_point_size->value ); 
  
@@ -1080,8 +991,8 @@ void R_DrawParticles (void)
 			*(int *)color = d_8to24table[p->color]; 
 			color[3] = p->alpha*255; 
  
-			qglColor4ubv( color ); 
-			qglVertex3fv( p->origin ); 
+			qglColor4ubv( color );
+			qglVertex3fv( p->origin );
 		}
  
 		qglEnd(); 
@@ -1186,16 +1097,8 @@ static void TurnVector (vec3_t out, const vec3_t forward, const vec3_t side, flo
 {
 	float	scale_forward, scale_side;
 
-	#if 1
-
 	scale_forward = cos(angle * M_PI / 180.0);
 	scale_side = sin(angle * M_PI / 180.0);
-
-	#else
-
-	SinCos((angle * M_PI / 180.0), &scale_side, &scale_forward);
-
-	#endif
 
 	out[0] = scale_forward*forward[0] + scale_side*side[0];
 	out[1] = scale_forward*forward[1] + scale_side*side[1];
@@ -1207,22 +1110,6 @@ void R_SetFrustum (void)
 	int	i; 
  
 	#if 1  // Cowcat optimization
-
-	/*
-	float vpnrx, vpnry;
-
-	vpnrx = (90-r_newrefdef.fov_x / 2);
-	vpnry = (90-r_newrefdef.fov_y / 2);
-	
-	// rotate VPN right by FOV_X/2 degrees 
-	RotatePointAroundVector( frustum[0].normal, vup, vpn, -vpnrx ); 
-	// rotate VPN left by FOV_X/2 degrees 
-	RotatePointAroundVector( frustum[1].normal, vup, vpn, vpnrx ); 
-	// rotate VPN up by FOV_X/2 degrees 
-	RotatePointAroundVector( frustum[2].normal, vright, vpn, vpnry ); 
-	// rotate VPN down by FOV_X/2 degrees 
-	RotatePointAroundVector( frustum[3].normal, vright, vpn, -vpnry );
- 	*/
 
 	float vpnrx = r_newrefdef.fov_x * 0.5;
 	float vpnry = r_newrefdef.fov_y * 0.5;
@@ -1247,6 +1134,7 @@ void R_SetFrustum (void)
 	#endif 
  
 	#ifdef ALT_BOPS
+
 	//surgeon: fast culling nicked from darkplaces
 
 	for (i=0 ; i<4 ; i++) 
@@ -1577,9 +1465,6 @@ void R_Clear (void)
 	{ 
 		static int trickframe; 
  
-		//if (gl_clear->value) 
-			//qglClear (GL_COLOR_BUFFER_BIT); 
- 
 		trickframe++;
 
 		if (trickframe & 1) 
@@ -1599,12 +1484,6 @@ void R_Clear (void)
 
 	else 
 	{ 
-		//if (gl_clear->value) 
-			//qglClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- 
-		//else 
-			//qglClear (GL_DEPTH_BUFFER_BIT);
-
 		clearBits |= GL_DEPTH_BUFFER_BIT;
 
 		gldepthmin = 0; 
@@ -2099,13 +1978,13 @@ DLLFUNC qboolean R_Init( void *hinstance, void *hWnd )
 	** get our various GL strings 
 	*/
  
-	gl_config.vendor_string = qglGetString (GL_VENDOR); 
+	gl_config.vendor_string = (const char *)qglGetString (GL_VENDOR); 
 	ri.Con_Printf (PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string ); 
-	gl_config.renderer_string = qglGetString (GL_RENDERER); 
+	gl_config.renderer_string = (const char *)qglGetString (GL_RENDERER); 
 	ri.Con_Printf (PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string ); 
-	gl_config.version_string = qglGetString (GL_VERSION); 
+	gl_config.version_string = (const char *)qglGetString (GL_VERSION); 
 	ri.Con_Printf (PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string ); 
-	gl_config.extensions_string = qglGetString (GL_EXTENSIONS); 
+	gl_config.extensions_string = (const char *)qglGetString (GL_EXTENSIONS); 
 	ri.Con_Printf (PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string ); 
  
 	strcpy( renderer_buffer, gl_config.renderer_string ); 
@@ -2147,7 +2026,7 @@ DLLFUNC qboolean R_Init( void *hinstance, void *hWnd )
 	else 
 		gl_config.renderer = GL_RENDERER_OTHER; 
  
-	if ( toupper( gl_monolightmap->string[1] ) != 'F' ) 
+	if ( toupper( gl_monolightmap->string[1] ) != 'F' )
 	{ 
 		if ( gl_config.renderer == GL_RENDERER_PERMEDIA2 ) 
 		{ 
@@ -2224,7 +2103,8 @@ DLLFUNC qboolean R_Init( void *hinstance, void *hWnd )
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" ); 
 	} 
  
-#ifdef _WIN32 
+#ifdef _WIN32
+
 	if ( strstr( gl_config.extensions_string, "WGL_EXT_swap_control" ) ) 
 	{ 
 		qwglSwapIntervalEXT = ( BOOL (WINAPI *)(int)) qwglGetProcAddress( "wglSwapIntervalEXT" ); 
@@ -2257,7 +2137,8 @@ DLLFUNC qboolean R_Init( void *hinstance, void *hWnd )
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_point_parameters not found\n" ); 
 	} 
  
-#ifdef __linux__ 
+#ifdef __linux__
+
 	if ( strstr( gl_config.extensions_string, "3DFX_set_global_palette" )) 
 	{ 
 		if ( gl_ext_palettedtexture->value ) 
@@ -2370,25 +2251,29 @@ DLLFUNC qboolean R_Init( void *hinstance, void *hWnd )
 	if ( err != GL_NO_ERROR ) 
 		ri.Con_Printf (PRINT_ALL, "After GL_SetDefaultState: glGetError() = 0x%x\n", err); 
 	 
-	GL_InitImages (); 
+	GL_InitImages ();
+
 	err = qglGetError();
  
 	if ( err != GL_NO_ERROR ) 
 		ri.Con_Printf (PRINT_ALL, "After GL_InitImages: glGetError() = 0x%x\n", err); 
 	 
-	Mod_Init (); 
+	Mod_Init ();
+
 	err = qglGetError();
  
 	if ( err != GL_NO_ERROR ) 
 		ri.Con_Printf (PRINT_ALL, "After Mod_Init: glGetError() = 0x%x\n", err); 
  
-	R_InitParticleTexture (); 
+	R_InitParticleTexture ();
+
 	err = qglGetError();
  
 	if ( err != GL_NO_ERROR ) 
 		ri.Con_Printf (PRINT_ALL, "After R_InitParticleTexture: glGetError() = 0x%x\n", err); 
  
-	Draw_InitLocal (); 
+	Draw_InitLocal ();
+
 	err = qglGetError();
  
 	if ( err != GL_NO_ERROR ) 
@@ -2500,31 +2385,7 @@ DLLFUNC void R_BeginFrame( void )
 	** go into 2D mode 
 	*/ 
 
-	#if 0
-
-	qglViewport (0, 0, vid.width, vid.height);
-
-	#ifndef AMIGAOS // bypass transformation pipeline
-
-	qglMatrixMode(GL_PROJECTION); 
-	qglLoadIdentity (); 
-	qglOrtho  (0, vid.width, vid.height, 0, -99999, 99999); 
-	qglMatrixMode(GL_MODELVIEW); 
-	qglLoadIdentity ();
-
-	#endif
-
-	qglDisable (GL_DEPTH_TEST); 
-	qglDisable (GL_CULL_FACE); 
-	qglDisable (GL_BLEND); 
-	qglEnable (GL_ALPHA_TEST); 
-	qglColor4f (1,1,1,1); 
-
-	#else
-
 	R_SetGL2D();
-
-	#endif
  
 	/* 
 	** draw buffer stuff 
@@ -2592,7 +2453,7 @@ DLLFUNC void R_SetPalette ( const unsigned char *palette)
 { 
 	int	i; 
  
-	byte *rp = ( byte * ) r_rawpalette; 
+	byte *rp = ( byte * )r_rawpalette; 
  
 	if ( palette ) 
 	{ 
@@ -2611,8 +2472,8 @@ DLLFUNC void R_SetPalette ( const unsigned char *palette)
 		{
 			// littlelong needed ? - Cowcat 
 			rp[i*4+0] = LittleLong(d_8to24table[i]) & 0xff; 
-			rp[i*4+1] = LittleLong(( d_8to24table[i]) >> 8 ) & 0xff; 
-			rp[i*4+2] = LittleLong(( d_8to24table[i]) >> 16 ) & 0xff; 
+			rp[i*4+1] = (LittleLong(d_8to24table[i]) >> 8 ) & 0xff; 
+			rp[i*4+2] = (LittleLong(d_8to24table[i]) >> 16 ) & 0xff; 
 			rp[i*4+3] = 0xff; 
 		} 
 	}

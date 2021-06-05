@@ -24,33 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "gl_local.h"
 
-#if 0
-
-#undef qglTexCoord2f
-#undef qglVertex2f
-
-#define qglTexCoord2f(s, t){\
-	MGLVERT.v.u = (W3D_Float)(s);\
-	MGLVERT.v.v = (W3D_Float)(t);\
-}\
-
-#define qglVertex2f(x, y){\
-	if(CC->ShadeModel == GL_SMOOTH)\
-	{\
-		MGLVERT.v.color.r = CC->CurrentColor.r;\
-		MGLVERT.v.color.g = CC->CurrentColor.g;\
-		MGLVERT.v.color.b = CC->CurrentColor.b;\
-		MGLVERT.v.color.a = CC->CurrentColor.a;\
-	}\
-	MGLVERT.bx=(GLfloat)(x);\
-	MGLVERT.by=(GLfloat)(y);\
-	MGLVERT.bz=(GLfloat)0.f;\
-	MGLVERT.bw=(GLfloat)1.f;\
-	CC->VertexBufferPointer++;\
-}\
-
-#endif
-
 image_t *draw_chars;
 
 extern  qboolean  scrap_dirty;
@@ -64,19 +37,7 @@ Draw_InitLocal
 
 void Draw_InitLocal (void)
 {
-	#if 0
-
-	// load console characters (don't bilerp characters)
 	draw_chars = GL_FindImage ("pics/conchars.pcx", it_pic);
-	GL_Bind( draw_chars->texnum );
-	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	#else // yamagi
-
-	draw_chars = GL_FindImage ("pics/conchars.pcx", it_pic);
-
-	#endif
 }
 
 /*

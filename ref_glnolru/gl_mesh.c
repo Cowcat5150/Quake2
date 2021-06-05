@@ -562,79 +562,8 @@ static void GL_SetVertexArrayPointers (void)
 
 static qboolean va_is_enabled = false;
 
-#if 0
-void GL_DrawOutLine(dmdl_t *paliashdr, int posenum)
-{
-	daliasframe_t	*frame; 
-	dtrivertx_t	*verts;
-	int		count;
-	int		*order;
-	float		strength, len;
-	
-	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames + currententity->frame * paliashdr->framesize); 
-	verts = frame->verts;
-
-	order = (int *)((byte *)paliashdr + paliashdr->ofs_glcmds);
-
-	if (currententity->flags & RF_TRANSLUCENT) 
-		return;
-
-	qglCullFace(GL_BACK);
-
-	vec3_t length;
-
-	VectorSubtract(r_newrefdef.vieworg, currententity->origin, length);
-	len = VectorNormalize(length);
-
-	strength = (1000.0 - len) / 1000.0;
-
-	if(strength > 1)
-		strength = 1;
-
-	if(strength < 0)
-		strength = 0;
-
-	qglColor4f(0,0,0,1);
-	
-	while(1)
-	{
-		count = *order++;
-
-		if(!count)
-			break;
-
-		if (count < 0)
-		{ 
-			count = -count; 
-			qglBegin (GL_TRIANGLE_FAN); 
-		}
- 
-		else 
-		{ 
-			qglBegin (GL_TRIANGLE_STRIP); 
-		}
-
-		do
-		{	
-			qglVertex3fv ( s_lerped[order[2]] );
-			order +=3;
-
-		} while(--count);
-
-		qglEnd();
-	}
-	
-	qglCullFace(GL_FRONT);
-}
-#endif
-
-
-#if 1  // 
-
-//static GLenum  primtype[1024];
 static GLsizei vcount[1024];
 static UWORD   vaindex[MAX_VERTS*4];
-//static UWORD   *vaindices[1024]; // not needed now - Cowcat
 
 void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp) 
 { 
@@ -768,15 +697,11 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 
 	if ( gl_vertex_arrays->value ) 
 	{
-		GLenum	       curprim; 
-		//int	       pcount;
-		UWORD	       *idx;
+		GLenum	curprim;
+		UWORD	*idx;
   
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glLockArrays( 0, paliashdr->num_xyz );
-
-		//pcount = 0;
-		//idx    = vaindex;
 
 		while (1) 
 		{ 
@@ -798,32 +723,21 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 				curprim = GL_TRIANGLE_STRIP; 
 			}
 
-			vcount[0] = count; 	// Cowcat
+			vcount[0] = count;	// Cowcat
 			idx	  = vaindex;	//
 
 			if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM) )
 			{
-				//primtype[pcount]  = curprim;
-				//vcount[pcount]    = count;
-				//vaindices[pcount] = idx;
-				//pcount++;
-
 				do 
 				{
 					*idx++ = (UWORD)order[2];
 					order += 3; 
  
 				} while (--count);
-
-				// DrawElemenst workaround from Q2 AmigaOS4 sources
-				//glDrawElements(curprim, vcount[pcount], GL_UNSIGNED_SHORT, vaindices[pcount]); // now down - Cowcat
 			}
 
 			else
 			{
-				//vcount[0] = count;
-				//idx	  = vaindex;
-
 				do 
 				{
 					index_xyz = order[2];
@@ -844,8 +758,6 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 					order += 3;
  
 				} while (--count);
-
-				//glDrawElements( curprim, vcount[0], GL_UNSIGNED_SHORT, (void *)vaindex); // now down - Cowcat
 			}
 
 			glDrawElements( curprim, vcount[0], GL_UNSIGNED_SHORT, (void *)vaindex);
@@ -868,7 +780,7 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 			glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 
 			if(gl_smoothmodels->value) // ; fix Cowcat
-				glDisableClientState (GL_COLOR_ARRAY);
+				glDisableClientState ( GL_COLOR_ARRAY );
 		}
 	}
  
@@ -913,34 +825,7 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 					qglTexCoord2fv((float *)order); 
 					index_xyz = order[2]; 
 					order += 3;
-					
-					#if 0
-					vec3_t	lightcolor;
-					if( !(currententity->flags & RF_TRANSLUCENT) )
-					{
-						float highest = 0;
-						float cellcolors[16] = {
-							0.1, 0.1,
-							0.3, 0.3, 0.3,
-							0.5, 0.5, 0.5, 0.5,
-							1.0, 1.0, 1.0, 1.0 };
 
-						for(i = 0; i < 3; i++)
-						{
-							lightcolor[i] = cellcolors [(int)(lightcolor[i] * 16.0) ];
-
-							if( lightcolor[i] > highest )
-								highest = lightcolor[i];
-
-							//vArray
-						}
-						
-						for(i = 0; i < 3; i++)
-							lightcolor[i] = highest;
-					}
-					#endif
-
-					//qglColor4f(lightcolor[0], lightcolor[1], lightcolor[2], alpha); 
 					qglColor3fv (vArray[index_xyz].data);
 					qglVertex3fv (s_lerped[index_xyz]);
 
@@ -962,10 +847,7 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 			}
  
 			qglEnd (); 
-		} 
-
-		//GL_DrawOutLine(paliashdr, currententity->frame);
-
+		}
 	} 
 
 	if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM) )
@@ -976,15 +858,11 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 			qglShadeModel( GL_SMOOTH );
 	}
 }
+ 
 
-#else //tested okay 
+#if 0 // original routine
 
-// added Cowcat 
-static UWORD  vaindex[512];
-static ULONG  vcount;
-static GLenum primtype;
-
-void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp) // old - Cowcat
+void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp) 
 { 
 	float		l; 
 	daliasframe_t	*frame, *oldframe; 
@@ -994,306 +872,15 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp) // old - Cowcat
 	float		frontlerp; 
 	float		alpha; 
 	vec3_t		move, delta, vectors[3]; 
-	vec3_t		frontv, backv;
+	vec3_t		frontv, backv; 
 	int		i; 
 	int		index_xyz; 
-	GLfloat		*lerp; 
-
-	if(!va_is_enabled)
-	{
-		GL_SetVertexArrayPointers();
-		va_is_enabled = true;
-	}
-
+	float		*lerp; 
+ 
 	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames + currententity->frame * paliashdr->framesize); 
 	verts = v = frame->verts; 
-
-	if(backlerp != 0.0) //surgeon
-	{
-		oldframe = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames + currententity->oldframe * paliashdr->framesize); 
-		ov = oldframe->verts; 
-	}
-
-	else
-	{
-	  ov = NULL;
-	}
-
-	order = (int *)((byte *)paliashdr + paliashdr->ofs_glcmds); 
  
-	if (currententity->flags & RF_TRANSLUCENT) 
-		alpha = currententity->alpha; 
-	else 
-		alpha = 1.0; 
-
-	// PMM - added double shell 
-
-	if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM) )
-	{ 
-		qglDisable( GL_TEXTURE_2D );
- 
-		if(gl_smoothmodels->value)
-		qglShadeModel( GL_FLAT );
-	}
-
-	else if ( gl_vertex_arrays->value )
-	{ 
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-		if(gl_smoothmodels->value)
-			glEnableClientState( GL_COLOR_ARRAY );
-	}
-
-	if(backlerp != 0.0) //surgeon
-	{ 
-	   frontlerp = 1.0 - backlerp; 
- 
-	   // move should be the delta back to the previous frame * backlerp 
-
-	   VectorSubtract (currententity->oldorigin, currententity->origin, delta); 
-	   AngleVectors (currententity->angles, vectors[0], vectors[1], vectors[2]); 
- 
-	   move[0] = DotProduct (delta, vectors[0]);	   // forward 
-	   move[1] = -DotProduct (delta, vectors[1]);	   // left 
-	   move[2] = DotProduct (delta, vectors[2]);	   // up 
-	   VectorAdd (move, oldframe->translate, move); 
-
- 
-	   for (i=0 ; i<3 ; i++) 
-	   { 
-		move[i] = backlerp*move[i] + frontlerp*frame->translate[i]; 
-	   } 
- 
-	   for (i=0 ; i<3 ; i++) 
-	   { 
-		frontv[i] = frontlerp*frame->scale[i]; 
-		backv[i] = backlerp*oldframe->scale[i]; 
-	   } 
-
-	}
-	else
-	{
-
-	   for (i=0 ; i<3 ; i++) 
-	   { 
-		move[i] = frame->translate[i]; 
-		frontv[i] = frame->scale[i]; 
-	   } 
-
-	}
-
-	qglTranslatef (move[0], move[1], move[2]); //surgeon: optimization
-
-	lerp = s_lerped[0]; 
-
-	GL_LerpVerts_notrans( paliashdr->num_xyz, v, ov, verts, lerp, frontv, backv ); 
-
-	if(gl_shadows->value)
-	{
-		#ifdef AMIGA_VOLATILE_ARRAYS
-		GL_LerpShadowVerts( paliashdr->num_xyz, v, lerp, move);
-		#else
-		VectorCopy( move, shadetrans );
-		#endif
-	}
-
-	//lerp = s_lerped[0];
-	//GL_LerpVerts( paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv ); 
-
-	if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM) ) 
-	{
-		qglColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
-	}
-
-	else if(!gl_smoothmodels->value)
-	{
-		static float r,g,b;
-
-		r = shadelight[0] * 1.2;
-		g = shadelight[1] * 1.2;
-		b = shadelight[2] * 1.2;
-
-		qglColor4f(r, g, b, alpha);
-	}
-	else if(!gl_vertex_arrays->value)
-	{
-		qglColor4f(1, 1, 1, alpha);
-	}
-
-	if ( gl_vertex_arrays->value ) 
-	{
-
-	//static UWORD	vaindex[512];
-	//static ULONG	vcount;
-	//static GLenum primtype; 
-	UWORD *idx;
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glLockArrays( 0, paliashdr->num_xyz );
-
-		while (1) 
-		{ 
-			// get the vertex count and primitive type
- 
-			count = *order++;
- 
-			if (!count) 
-				break;		// done
- 
-			if (count < 0) 
-			{ 
-				count = -count; 
-				//qglBegin (GL_TRIANGLE_FAN); 
-				primtype = GL_TRIANGLE_FAN; 
-			}
- 
-			else 
-			{ 
-				//qglBegin (GL_TRIANGLE_STRIP); 
-				primtype = GL_TRIANGLE_STRIP; 
-			} 
-
-			idx = &vaindex[0];
-			vcount = count;
-
-			if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM) ) 
-			{
-				do 
-				{
-				*idx++ = (UWORD)order[2];
-
-				//qglArrayElement(order[2]);
-				order += 3; 
- 
-				} while (--count);
-			} 
-			else 
-			{
-				do 
-				{ 
-				// texture coordinates come from the draw list
-
-				index_xyz = order[2];
- 
-				vArray[index_xyz].data[0] = ((float *)order)[0];
-				vArray[index_xyz].data[1] = ((float *)order)[1];
-				*idx++ = (UWORD)index_xyz;
- 
-				//qglTexCoord2fv((float *)order);
-				//qglArrayElement(order[2]);
-
-				order += 3; 
-
-				} while (--count); 
-			}
-
-			glDrawElements( primtype, vcount, GL_UNSIGNED_SHORT, (void *)vaindex);
-			//qglEnd();
-
-		}
-
-		glUnlockArrays();
-		glDisableClientState( GL_VERTEX_ARRAY );
-
-		if ( !( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM) ) ) 
-		{
-		   glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-		   if(gl_smoothmodels->value);
-		   glDisableClientState( GL_COLOR_ARRAY );
-		}
-	} 
-	else 
-	{
-		while (1) 
-		{ 
-			// get the vertex count and primitive type 
-			count = *order++; 
-			if (!count) 
-				break;		// done 
-			if (count < 0) 
-			{ 
-				count = -count; 
-				qglBegin (GL_TRIANGLE_FAN); 
-			} 
-			else 
-			{ 
-				qglBegin (GL_TRIANGLE_STRIP); 
-			} 
- 
-			if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM ) ) 
-			{ 
-				do 
-				{ 
-					index_xyz = order[2]; 
-					order += 3; 
- 
-					qglVertex3fv (s_lerped[index_xyz]); 
- 
-				} while (--count); 
-			} 
-			else if(gl_smoothmodels->value)
-			{
-				do 
-				{ 
-					// texture coordinates come from the draw list 
-					qglTexCoord2fv((float *)order); 
-					index_xyz = order[2]; 
-					order += 3;
- 
-					qglColor3fv (vArray[index_xyz].data);
-					qglVertex3fv (s_lerped[index_xyz]); 
-				} while (--count); 
-			}
-			else
-			{
-				do 
-				{ 
-					// texture coordinates come from the draw list 
-					qglTexCoord2fv ((float *)order); 
-					index_xyz = order[2]; 
-					order += 3;
- 
-					qglVertex3fv (s_lerped[index_xyz]); 
-				} while (--count); 
-			} 
-			qglEnd (); 
-		} 
-	} 
-
-	if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM) )
-	{ 
-		qglEnable( GL_TEXTURE_2D ); 
-
-		if( gl_smoothmodels->value )
-		qglShadeModel( GL_SMOOTH );
-	}
-}
-#endif
- 
-#if 0 // original routine
-
-void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp) 
-{ 
-	float	l; 
-	daliasframe_t	*frame, *oldframe; 
-	dtrivertx_t	*v, *ov, *verts; 
-	int		*order; 
-	int		count; 
-	float	frontlerp; 
-	float	alpha; 
-	vec3_t	move, delta, vectors[3]; 
-	vec3_t	frontv, backv; 
-	int		i; 
-	int		index_xyz; 
-	float	*lerp; 
- 
-	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames  
-		+ currententity->frame * paliashdr->framesize); 
-	verts = v = frame->verts; 
- 
-	oldframe = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames	
-		+ currententity->oldframe * paliashdr->framesize); 
+	oldframe = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames + currententity->oldframe * paliashdr->framesize); 
 	ov = oldframe->verts; 
  
 	order = (int *)((byte *)paliashdr + paliashdr->ofs_glcmds); 
@@ -1352,8 +939,8 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 		} 
 		else 
 		{ 
-		qglEnableClientState( GL_COLOR_ARRAY ); 
-		qglColorPointer( 3, GL_FLOAT, 0, colorArray ); 
+			qglEnableClientState( GL_COLOR_ARRAY ); 
+			qglColorPointer( 3, GL_FLOAT, 0, colorArray ); 
  
 			// 
 			// pre light everything 
@@ -1374,14 +961,17 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 		while (1) 
 		{ 
 			// get the vertex count and primitive type 
-			count = *order++; 
+			count = *order++;
+
 			if (!count) 
-				break;		// done 
+				break;		// done
+
 			if (count < 0) 
 			{ 
 				count = -count; 
 				qglBegin (GL_TRIANGLE_FAN); 
-			} 
+			}
+
 			else 
 			{ 
 				qglBegin (GL_TRIANGLE_STRIP); 
@@ -1397,40 +987,46 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
  
 					qglVertex3fv( s_lerped[index_xyz] ); 
 				} while (--count);
-			} 
+			}
+
 			else 
 			{ 
 				do 
 				{ 
 					// texture coordinates come from the draw list
-				index_xyz = order[2]; 
+					index_xyz = order[2]; 
 
-				qglTexCoord2f (((float *)order)[0], ((float *)order)[1]);
-				order += 3; 
+					qglTexCoord2f (((float *)order)[0], ((float *)order)[1]);
+					order += 3; 
  
-				glArrayElement( index_xyz ); 
+					glArrayElement( index_xyz ); 
  
 				} while (--count); 
 			}
+
 			qglEnd (); 
 		} 
 
 		if ( qglUnlockArraysEXT != 0 ) 
 			qglUnlockArraysEXT(); 
-	} 
+	}
+
 	else 
 	{ 
 		while (1) 
 		{ 
 			// get the vertex count and primitive type 
-			count = *order++; 
+			count = *order++;
+
 			if (!count) 
-				break;		// done 
+				break;		// done
+
 			if (count < 0) 
 			{ 
 				count = -count; 
 				qglBegin (GL_TRIANGLE_FAN); 
-			} 
+			}
+
 			else 
 			{ 
 				qglBegin (GL_TRIANGLE_STRIP); 
@@ -1447,7 +1043,8 @@ void GL_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 					qglVertex3fv (s_lerped[index_xyz]); 
  
 				} while (--count); 
-			} 
+			}
+
 			else 
 			{ 
 				do 
@@ -1532,7 +1129,6 @@ void GL_DrawAliasShadow (entity_t *e, dmdl_t *paliashdr) // , int posenum)
 	if(gl_vertex_arrays->value) //surgeon
 	{
 		int 	i;
-		//int 	pcount; 
 		GLenum 	curprim;
 		UWORD 	*idx;
 
@@ -1561,10 +1157,7 @@ void GL_DrawAliasShadow (entity_t *e, dmdl_t *paliashdr) // , int posenum)
 		#endif
 
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glLockArrays(0, paliashdr->num_xyz);
-
-		//pcount = 0;
-		//idx = vaindex;	 
+		glLockArrays(0, paliashdr->num_xyz); 
 	  
 		while (1) 
 		{ 
@@ -1578,19 +1171,12 @@ void GL_DrawAliasShadow (entity_t *e, dmdl_t *paliashdr) // , int posenum)
 			{ 
 				count = -count; 
 				curprim = GL_TRIANGLE_FAN; 
-				//primtype = GL_TRIANGLE_FAN; 
 			}
  
 			else
 			{ 
 				curprim = GL_TRIANGLE_STRIP; 
-				//primtype = GL_TRIANGLE_STRIP; 
 			}
-
-			//primtype[pcount]  = curprim;
-			//vcount[pcount]    = count;
-			//vaindices[pcount] = idx;
-			//pcount++;
 
 			idx = vaindex;
 			vcount[0] = count;
@@ -1889,13 +1475,13 @@ void R_DrawAliasModelBBox (vec3_t bbox[8], entity_t *e)
 	//qglColor4f(0.5f,0.5f,0.5f,0.2f);
 	qglColor4f(1,1,1,1);
 
-	glEnable(GL_BLEND);
+	glEnable( GL_BLEND );
         qglDisable( GL_CULL_FACE ); 
         qglDisable( GL_TEXTURE_2D );
 
 	// Workaround for missing glPolygonMode GL_LINE - Cowcat
 
-	qglBegin (GL_LINES);
+	qglBegin ( GL_LINES );
 
 	for(i=0; i < 24; i++)
 	{
@@ -1907,7 +1493,7 @@ void R_DrawAliasModelBBox (vec3_t bbox[8], entity_t *e)
 	if(mode == 2)
 		glEnable(GL_DEPTH_TEST);
 
-	glDisable(GL_BLEND);	
+	glDisable( GL_BLEND );	
         qglEnable( GL_TEXTURE_2D );  
         qglEnable( GL_CULL_FACE );
 }
@@ -1948,7 +1534,6 @@ void R_DrawAliasModel (entity_t *e)
 { 
 	int		i; 
 	dmdl_t		*paliashdr; 
-	//float		an; 
 	vec3_t		bbox[8]; 
 	image_t		*skin;
 	qboolean	mirrormodel = false; // Knightmare
@@ -2100,7 +1685,7 @@ void R_DrawAliasModel (entity_t *e)
 
 // ================= 
 // PGM	ir goggles color override 
-	if ( r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE) 
+	if ( r_newrefdef.rdflags & RDF_IRGOGGLES && currententity->flags & RF_IR_VISIBLE ) 
 	{ 
 		shadelight[0] = 1.0; 
 		shadelight[1] = 0.0; 
@@ -2175,13 +1760,13 @@ void R_DrawAliasModel (entity_t *e)
  
 	#ifndef AMIGAOS //surgeon: state sorted - only reset if shadows are rendered
 
-	qglShadeModel (GL_SMOOTH);
+	qglShadeModel ( GL_SMOOTH );
 
 	GL_TexEnv( GL_MODULATE );
 
 	if ( currententity->flags & RF_TRANSLUCENT ) 
 	{ 
-		qglEnable (GL_BLEND); 
+		qglEnable ( GL_BLEND ); 
 	}
 
 	#endif 
@@ -2226,36 +1811,13 @@ void R_DrawAliasModel (entity_t *e)
  
 	#ifndef AMIGAOS
 	GL_TexEnv( GL_REPLACE ); 
-	qglShadeModel (GL_FLAT); 
+	qglShadeModel ( GL_FLAT ); 
 	#endif
  
 	qglPopMatrix (); 
- 
-	#if 0
-	if(gl_showbbox->value)
-	{
-		qglDisable( GL_CULL_FACE ); 
-		qglPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); 
-		qglDisable( GL_TEXTURE_2D ); 
-		qglBegin( GL_TRIANGLE_STRIP );
- 
-		for ( i = 0; i < 8; i++ ) 
-		{ 
-			qglVertex3fv( bbox[i] ); 
-		}
-
-		qglEnd(); 
-		qglEnable( GL_TEXTURE_2D ); 
-		qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL ); 
-		qglEnable( GL_CULL_FACE );
-
-	} 
-	#else
 
 	if(gl_showbbox->value)
 		R_DrawAliasModelBBox (bbox, e);
-
-	#endif 
  
 	if (mirrormodel)
 		R_FlipModel (false, false);
@@ -2263,7 +1825,7 @@ void R_DrawAliasModel (entity_t *e)
 	#ifndef AMIGAOS //moved because of state-sorting
 	if ( currententity->flags & RF_TRANSLUCENT ) 
 	{ 
-		qglDisable (GL_BLEND); 
+		qglDisable ( GL_BLEND ); 
 	} 
 	#endif
 
@@ -2273,10 +1835,11 @@ void R_DrawAliasModel (entity_t *e)
 	if ( gl_shadows->value && !(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL | RF_NOSHADOW)) ) 
 	{
 		#ifdef AMIGAOS
+
 		//GL_TexEnv( GL_REPLACE ); 
 
 		if(gl_smoothmodels->value)
-			qglShadeModel (GL_FLAT);
+			qglShadeModel ( GL_FLAT );
 		#endif
 
 		GL_DrawAliasShadow (e, paliashdr); // , currententity->frame );
@@ -2284,7 +1847,7 @@ void R_DrawAliasModel (entity_t *e)
 		#ifdef AMIGAOS //reset texenv and shademodel to default
 
 		if(gl_smoothmodels->value)
-			qglShadeModel (GL_SMOOTH);
+			qglShadeModel ( GL_SMOOTH );
 
 		//GL_TexEnv( GL_MODULATE );
 
@@ -2292,6 +1855,4 @@ void R_DrawAliasModel (entity_t *e)
 	} 
 
 	qglColor4f (1,1,1,1); 
-} 
- 
- 
+}
