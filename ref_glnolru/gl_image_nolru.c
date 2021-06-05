@@ -24,7 +24,7 @@ extern qboolean arb_multitexture;
 
 image_t		gltextures[MAX_GLTEXTURES];
 int		numgltextures;
-int		base_textureid;		// gltextures[i] = base_textureid+i
+int		base_textureid;	// gltextures[i] = base_textureid+i
 
 static byte	intensitytable[256];
 static unsigned char gammatable[256];
@@ -33,8 +33,8 @@ cvar_t		*intensity;
 
 unsigned	d_8to24table[256];
 
-qboolean 	GL_Upload8 (byte *data, int width, int height,	 qboolean mipmap, qboolean is_sky );
-qboolean 	GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
+qboolean 	GL_Upload8 (byte *data, int width, int height, qboolean mipmap, qboolean is_sky );
+qboolean 	GL_Upload32 (unsigned *data, int width, int height, qboolean mipmap);
 
 int		gl_solid_format = 3;
 int		gl_alpha_format = 4;
@@ -45,7 +45,7 @@ int		gl_tex_alpha_format = 4;
 int		gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int		gl_filter_max = GL_LINEAR;
 
-extern cvar_t *gl_nolerp_list; // yamagi
+extern cvar_t *gl_nolerp_list;
 
 void GL_SetTexturePalette( unsigned palette[256] )
 {
@@ -169,12 +169,12 @@ typedef struct
 } glmode_t;
 
 glmode_t modes[] = {
-	{"GL_NEAREST",	GL_NEAREST, GL_NEAREST},
-	{"GL_LINEAR",	GL_LINEAR, GL_LINEAR},
-	{"GL_NEAREST_MIPMAP_NEAREST",	GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST},
-	{"GL_LINEAR_MIPMAP_NEAREST",	GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR},
-	{"GL_NEAREST_MIPMAP_LINEAR",	GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST},
-	{"GL_LINEAR_MIPMAP_LINEAR",	GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR}
+	{"GL_NEAREST", GL_NEAREST, GL_NEAREST},
+	{"GL_LINEAR", GL_LINEAR, GL_LINEAR},
+	{"GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST},
+	{"GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR},
+	{"GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST},
+	{"GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR}
 };
 
 #define NUM_GL_MODES (sizeof(modes) / sizeof (glmode_t))
@@ -241,14 +241,26 @@ void GL_TextureMode( char *string )
 	gl_filter_min = modes[i].minimize;
 	gl_filter_max = modes[i].maximize;
 
+	const char *nolerplist = gl_nolerp_list->string;
+
 	// change all the existing mipmap texture objects
 	for (i=0, glt=gltextures ; i<numgltextures ; i++, glt++)
 	{
-		if (glt->type != it_pic && glt->type != it_sky )
+		if ( nolerplist != NULL && strstr(nolerplist, glt->name ) != NULL )
+			continue; // those (by default: font and crosshairs) always only use GL_NEAREST
+
+		GL_Bind (glt->texnum); // check here - Cowcat
+
+		if ( (glt->type != it_pic) && (glt->type != it_sky) ) // mipmapped texture
 		{
-			GL_Bind (glt->texnum);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		}
+
+		else // texture has no mipmaps
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 		}
 	}
 }
@@ -328,7 +340,7 @@ void GL_ImageList_f (void)
 		if (image->texnum <= 0)
 			continue;
 
-		texels += image->upload_width*image->upload_height;
+		texels += image->upload_width * image->upload_height;
 
 		switch (image->type)
 		{
@@ -852,11 +864,14 @@ void R_FloodFillSkin( byte *skin, int skinwidth, int skinheight )
 
 		// attempt to find opaque black
 		for (i = 0; i < 256; ++i)
-			if (d_8to24table[i] == (255 << 0)) // alpha 1.0
+		{
+			//if (d_8to24table[i] == (255 << 0)) // alpha 1.0
+			if ( LittleLong(d_8to24table[i]) == (255 << 0)) // alpha 1.0 // test LittleLong Cowcat
 			{
 				filledcolor = i;
 				break;
 			}
+		}
 	}
 
 	// can't fill to filled color or to transparent color (used as visited marker)
@@ -910,7 +925,7 @@ void GL_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,
 	unsigned	p1[1024], p2[1024];
 	byte		*pix1, *pix2, *pix3, *pix4;
 
-	fracstep = inwidth*0x10000/outwidth;
+	fracstep = inwidth * 0x10000 / outwidth;
 
 	frac = fracstep>>2;
 
@@ -966,7 +981,7 @@ void GL_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean onl
 
 		p = (byte *)in;
 
-		c = inwidth*inheight;
+		c = inwidth * inheight;
 
 		for (i=0 ; i<c ; i++, p+=4)
 		{
@@ -983,7 +998,7 @@ void GL_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean onl
 
 		p = (byte *)in;
 
-		c = inwidth*inheight;
+		c = inwidth * inheight;
 
 		for (i=0 ; i<c ; i++, p+=4)
 		{
@@ -1015,10 +1030,10 @@ void GL_MipMap (byte *in, int width, int height)
 	{
 		for (j=0 ; j<width ; j+=8, out+=4, in+=8)
 		{
-			out[0] = (in[0] + in[4] + in[width+0] + in[width+4])>>2;
-			out[1] = (in[1] + in[5] + in[width+1] + in[width+5])>>2;
-			out[2] = (in[2] + in[6] + in[width+2] + in[width+6])>>2;
-			out[3] = (in[3] + in[7] + in[width+3] + in[width+7])>>2;
+			out[0] = (in[0] + in[4] + in[width+0] + in[width+4]) >> 2;
+			out[1] = (in[1] + in[5] + in[width+1] + in[width+5]) >> 2;
+			out[2] = (in[2] + in[6] + in[width+2] + in[width+6]) >> 2;
+			out[3] = (in[3] + in[7] + in[width+3] + in[width+7]) >> 2;
 		}
 	}
 }
@@ -1066,16 +1081,16 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 
 	uploaded_paletted = false;
 
-	for (scaled_width = 1 ; scaled_width < width ; scaled_width<<=1)
+	for (scaled_width = 1 ; scaled_width < width ; scaled_width <<= 1)
 		;
 
-	if (gl_round_down->value && scaled_width > width && mipmap)
+	if (gl_round_down->value && (scaled_width > width) && mipmap)
 		scaled_width >>= 1;
 
-	for (scaled_height = 1 ; scaled_height < height ; scaled_height<<=1)
+	for (scaled_height = 1 ; scaled_height < height ; scaled_height <<= 1)
 		;
 
-	if (gl_round_down->value && scaled_height > height && mipmap)
+	if (gl_round_down->value && (scaled_height > height) && mipmap)
 		scaled_height >>= 1;
 
 	// let people sample down the world textures for speed
@@ -1108,42 +1123,26 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 	c = width*height;
 	scan = ((byte *)data) + 3;
 	samples = gl_solid_format;
-	comp = gl_tex_solid_format; // yamagi
+	comp = gl_tex_solid_format;
 
 	for (i=0 ; i<c ; i++, scan += 4)
 	{
 		if ( *scan != 255 )
 		{
 			samples = gl_alpha_format;
-			comp = gl_tex_alpha_format; // yamagi
+			comp = gl_tex_alpha_format;
 			break;
 		}
 	}
 
-	// disabled - Yamagi
-	/*
-	if (samples == gl_solid_format)
-	    	comp = gl_tex_solid_format;
-
-	else if (samples == gl_alpha_format)
-	    	comp = gl_tex_alpha_format;
-
-	else
-	{
-		ri.Con_Printf (PRINT_ALL, "Unknown number of texture components %i\n", samples);
-		comp = samples;
-	}
-	*/
-
-
-	if (scaled_width == width && scaled_height == height)
+	if ( (scaled_width == width) && (scaled_height == height) )
 	{
 		if (!mipmap)
 		{
-			if ( qglColorTableEXT && gl_ext_palettedtexture->value && samples == gl_solid_format )
+			if ( qglColorTableEXT && gl_ext_palettedtexture->value && (samples == gl_solid_format) )
 			{
 				uploaded_paletted = true;
-				GL_BuildPalettedTexture( paletted_texture, ( unsigned char * ) data, scaled_width, scaled_height );
+				GL_BuildPalettedTexture( paletted_texture, (unsigned char *) data, scaled_width, scaled_height );
 				qglTexImage2D( GL_TEXTURE_2D,
 							0,
 							GL_COLOR_INDEX8_EXT,
@@ -1163,7 +1162,7 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 			goto done;
 		}
 
-		memcpy (scaled, data, width*height*4);
+		memcpy (scaled, data, width * height * 4);
 	}
 
 	else
@@ -1174,7 +1173,7 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 	if ( qglColorTableEXT && gl_ext_palettedtexture->value && ( samples == gl_solid_format ) )
 	{
 		uploaded_paletted = true;
-		GL_BuildPalettedTexture( paletted_texture, ( unsigned char * ) scaled, scaled_width, scaled_height );
+		GL_BuildPalettedTexture( paletted_texture, (unsigned char *) scaled, scaled_width, scaled_height );
 		qglTexImage2D( GL_TEXTURE_2D,
 					  0,
 					  GL_COLOR_INDEX8_EXT,
@@ -1212,10 +1211,10 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 
 			miplevel++;
 
-			if ( qglColorTableEXT && gl_ext_palettedtexture->value && samples == gl_solid_format )
+			if ( qglColorTableEXT && gl_ext_palettedtexture->value && (samples == gl_solid_format) )
 			{
 				uploaded_paletted = true;
-				GL_BuildPalettedTexture( paletted_texture, ( unsigned char * ) scaled, scaled_width, scaled_height );
+				GL_BuildPalettedTexture( paletted_texture, (unsigned char *) scaled, scaled_width, scaled_height );
 				qglTexImage2D( GL_TEXTURE_2D,
 							miplevel,
 							GL_COLOR_INDEX8_EXT,
@@ -1237,14 +1236,14 @@ done: ;
 
 	if (mipmap)
 	{
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 	}
 
 	else
 	{
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 	}
 
 	return (samples == gl_alpha_format);
@@ -1258,23 +1257,6 @@ Returns has_alpha
 ===============
 */
 
-/*
-static qboolean IsPowerOf2( int value )
-{
-	int i = 1;
-
-
-	while ( 1 )
-	{
-		if ( value == i )
-			return true;
-		if ( i > value )
-			return false;
-		i <<= 1;
-	}
-}
-*/
-
 qboolean GL_Upload8 (byte *data, int width, int height,	 qboolean mipmap, qboolean is_sky )
 {
 	unsigned	trans[512*256];
@@ -1283,7 +1265,7 @@ qboolean GL_Upload8 (byte *data, int width, int height,	 qboolean mipmap, qboole
 
 	s = width*height;
 
-	if (s > sizeof(trans)/4)
+	if ( s > sizeof(trans) / 4 )
 		ri.Sys_Error (ERR_DROP, "GL_Upload8: too large");
 
 	if ( qglColorTableEXT && gl_ext_palettedtexture->value && is_sky )
@@ -1298,8 +1280,8 @@ qboolean GL_Upload8 (byte *data, int width, int height,	 qboolean mipmap, qboole
 					  GL_UNSIGNED_BYTE,
 					  data );
 
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 
 		return false; // correct ? - Cowcat
 	}
@@ -1356,11 +1338,10 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 {
 	image_t *image;
 	int	i;
-	//int	current,peak;
 
 	qboolean nolerp = false;
 
-	if(gl_nolerp_list != NULL && gl_nolerp_list->string != NULL) // yamagi
+	if( gl_nolerp_list != NULL && gl_nolerp_list->string != NULL )
 		nolerp = strstr(gl_nolerp_list->string, name) != NULL; 
 
 	// find a free image_t
@@ -1390,11 +1371,11 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	image->height = height;
 	image->type = type;
 
-	if (type == it_skin && bits == 8)
+	if ( (type == it_skin) && (bits == 8) )
 		R_FloodFillSkin(pic, width, height);
 
 	// load little pics into the scrap
-	if (!nolerp && image->type == it_pic && bits == 8 && image->width < 64 && image->height < 64) // yamagi
+	if ( !nolerp && (image->type == it_pic) && (bits == 8) && (image->width < 64) && (image->height < 64) )
 	{
 		int	x, y;
 		int	i, j, k;
@@ -1411,16 +1392,18 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		k = 0;
 
 		for (i=0 ; i<image->height ; i++)
+		{
 			for (j=0 ; j<image->width ; j++, k++)
 				scrap_texels[texnum][(y+i)*BLOCK_WIDTH + x + j] = pic[k];
+		}
 
 		image->texnum = TEXNUM_SCRAPS + texnum;
 		image->scrap = true;
 		image->has_alpha = true;
-		image->sl = (x+0.01)/(float)BLOCK_WIDTH;
-		image->sh = (x+image->width-0.01)/(float)BLOCK_WIDTH;
-		image->tl = (y+0.01)/(float)BLOCK_WIDTH;
-		image->th = (y+image->height-0.01)/(float)BLOCK_WIDTH;
+		image->sl = (x+0.01) / (float)BLOCK_WIDTH;
+		image->sh = (x+image->width-0.01) / (float)BLOCK_WIDTH;
+		image->tl = (y+0.01) / (float)BLOCK_WIDTH;
+		image->th = (y+image->height-0.01) / (float)BLOCK_WIDTH;
 	}
 
 	else
@@ -1445,10 +1428,10 @@ nonscrap:
 		image->tl = 0;
 		image->th = 1;
 
-		if(nolerp) // yamagi
+		if(nolerp)
 		{
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		}
 		
 	}
